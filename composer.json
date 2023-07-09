@@ -1,0 +1,20 @@
+{
+    "name": "phplc/core",
+    "autoload": {
+        "psr-4": {
+            "Phplc\\Core\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Losev Andrei",
+            "email": "loseu.andrei.g@gmail.com"
+        }
+    ],
+    "require": {
+        "illuminate/container": "^10.14"
+    },
+    "require-dev": {
+        "vimeo/psalm": "^5.13"
+    }
+}
