@@ -4,7 +4,7 @@ namespace Phplc\Core\RuntimeFields;
 
 use Phplc\Core\Сontracts\Task;
 
-class PeriodicTaskField
+class EventTaskField
 {
     /** 
      * @param RetainPropertyField[] $taskRetainPropertus 
@@ -12,9 +12,8 @@ class PeriodicTaskField
      */
     public function __construct(
         private Task $task,
-        private int $preiodMilis,
+        private string $eventName, 
         private array $taskRetainPropertus,
         private array $storageRetainProerty,
-        private int $startTime = 0,
     ) {}
 }

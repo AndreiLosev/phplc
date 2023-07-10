@@ -1,6 +1,6 @@
 <?php
 
-namespace Phplc\Core\Сontracts;
+namespace Phplc\Core\Contracts;
 
 interface Task
 {
