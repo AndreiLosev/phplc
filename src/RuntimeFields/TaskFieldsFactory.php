@@ -2,8 +2,7 @@
 
 namespace Phplc\Core\RuntimeFields;
 
-use Illuminate\Container\Container;
-use phpDocumentor\Reflection\Types\ClassString;
+use Illuminate\Contracts\Cache\Store;
 use Phplc\Core\Attributes\EventTask;
 use Phplc\Core\Attributes\Logging;
 use Phplc\Core\Attributes\PeriodicTask;
@@ -15,41 +14,44 @@ use Phplc\Core\RuntimeFields\Dto\TaskFieldsFactoryBuildReuslt;
 use Phplc\Core\Contracts\Storage;
 use Phplc\Core\Contracts\Task;
 use Phplc\Core\RuntimeFields\Dto\SearchStoraePorpertyResult;
-use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionNamedType;
 use ReflectionProperty;
+use ReflectionMethod;
 
 class TaskFieldsFactory 
 {
-    /** 
-     * @param ClassString $taskName 
-     */
     public function build(
         Task $taskInstans,
-    ): TaskFieldsFactoryBuildReuslt
-    {
+    ): TaskFieldsFactoryBuildReuslt {
         $result = new TaskFieldsFactoryBuildReuslt();
 
         $reflectionClass = new ReflectionClass($taskInstans);
         $attriburs = $reflectionClass->getAttributes();
 
         foreach ($attriburs as $attribut) {
-            if ($attribut->getName() === PeriodicTask::class) {
+            $attributInstans = $this->getPeriodicTaskAttibutOrFalse(
+                $attribut,
+            );
+            if ($attributInstans) {
                 $buildResult = $this->periodicTaskBuild(
                     $reflectionClass,
-                    $attribut,
+                    $attributInstans,
                     $taskInstans,
                 );
-
+    
                 $result->periodicTask = $buildResult->periodicTaskField;
                 $result->loggingPropertyFields = $buildResult->loggingPropertyFields;
 
             }
 
-            if ($attribut->getName() === EventTaskField::class) {
+            $attributInstans = $this->getEventTaskAttibutOrFalse(
+                $attribut,
+            );
+            if ($attributInstans) {
                 $buildResult = $this->eventTaskBuild(
                     $reflectionClass,
-                    $attribut,
+                    $attributInstans,
                     $taskInstans,
                 );
 
@@ -63,24 +65,23 @@ class TaskFieldsFactory
 
     /** 
      * @param ReflectionClass<Task> $reflectionClass 
-     * @param ReflectionAttribute<PeriodicTask> $reflectionAttribute
      */
     private function periodicTaskBuild(
         ReflectionClass $reflectionClass,
-        ReflectionAttribute $reflectionAttribute,
+        PeriodicTask $attributInstans,
         Task $taskInstans,
     ): PeriodicTaskBuildResult {
-        [$seconds, $milliseconds] = $reflectionAttribute->getArguments();
         $taskPropertyFields = $this->searchPropertyAttriburs($reflectionClass);
-
         $searchResult = $this->searchStoraePorperty($reflectionClass);
 
         $searchResult->loggingPropertyField[$reflectionClass->getName()]
             = $taskPropertyFields->loggingProperty;
 
+        $period = $attributInstans->seconds * 1000 + $attributInstans->milliseconds;
+
         $periodicTasField = new PeriodicTaskField(
             $taskInstans,
-            $seconds * 1000 + $milliseconds,
+            $period,
             $taskPropertyFields->retainProeprty,
             $searchResult->retainPropertyFields,
         );
@@ -93,14 +94,12 @@ class TaskFieldsFactory
 
     /** 
      * @param ReflectionClass<Task> $reflectionClass 
-     * @param ReflectionAttribute<EventTask> $reflectionAttribute
      */
     private function eventTaskBuild(
         ReflectionClass $reflectionClass,
-        ReflectionAttribute $reflectionAttribute,
+        EventTask $attributInstans,
         Task $taskInstans,
     ): EventTaskBuildResult {
-        [$eventName] = $reflectionAttribute->getArguments();
         $taskPropertyFields = $this->searchPropertyAttriburs($reflectionClass);
 
         $searchResult = $this->searchStoraePorperty($reflectionClass);
@@ -110,7 +109,7 @@ class TaskFieldsFactory
 
         $periodicTasField = new EventTaskField(
             $taskInstans,
-            $eventName,
+            $attributInstans->eventName,
             $taskPropertyFields->retainProeprty,
             $searchResult->retainPropertyFields,
         );
@@ -128,18 +127,36 @@ class TaskFieldsFactory
         ReflectionClass $reflectionClass,
     ): SearchStoraePorpertyResult
     {
-        /** @var array<string, SearchPropertyAttribursResult> */
+        /** @var array<class-string<Store>, SearchPropertyAttribursResult> */
         $storagPropertyFields = [];
 
-        foreach ($reflectionClass->getConstructor()->getParameters() as $parameter) {
-            if (!in_array(Storage::class, class_implements($parameter->getName()))) {
-                continue;
-            }
+        $refletionConstructor = $reflectionClass->getConstructor();
 
-            $reflectStorageClass = new ReflectionClass($parameter->getName());
-            $storagPropertyFields[$parameter->getName()] = $this
-                ->searchPropertyAttriburs($reflectStorageClass);
-        }
+        if (!empty($refletionConstructor)) {
+            foreach ($refletionConstructor->getParameters() as $parameter) {
+                $refletionType = $parameter->getType();
+                if (empty($refletionType)) {
+                    continue;
+                }
+
+                if (!($refletionType instanceof ReflectionNamedType)) {
+                    throw new \RuntimeException("unsuported storage Union and Intersection types");
+                }
+
+                $typeName = $refletionType->getName();
+                
+                if (!in_array(Storage::class, class_implements($typeName))) {
+                    continue;
+                }
+
+                if (!class_exists($typeName)) {
+                    continue;
+                }
+                $reflectStorageClass = new ReflectionClass($typeName);
+                $storagPropertyFields[$typeName] = $this
+                    ->searchPropertyAttriburs($reflectStorageClass);
+            }
+        } 
 
         $storagPropertyRetainFields = [];
         foreach ($storagPropertyFields as $key => $field) {
@@ -172,17 +189,25 @@ class TaskFieldsFactory
             $propertyAttributs = $property->getAttributes();
             foreach ($propertyAttributs as $propertyAttribut) {
                 if ($propertyAttribut->getName() === Retain::class) {
-                    $retainProperty[] = $this->retainPropertyBuild(
-                        $property,
-                        $propertyAttribut,
-                    );                   
+                    $propertyAttributInstans = $propertyAttribut->newInstance();
+                    if ($propertyAttributInstans instanceof Retain) {
+                        $retainProperty[] = $this->retainPropertyBuild(
+                            $property,
+                            $propertyAttributInstans,
+                            $class
+                        );
+                    }                   
                 }
 
-                if ($property->getName() === Logging::class) {
-                    $loggingProperty[] = $this->loggingPropretyBuild(
-                        $property,
-                        $propertyAttribut,
-                    );
+                if ($propertyAttribut->getName() === Logging::class) {
+                    $propertyAttributInstans = $propertyAttribut->newInstance();
+                    if ($propertyAttributInstans instanceof Logging) {
+                        $loggingProperty[] = $this->loggingPropretyBuild(
+                            $property,
+                            $propertyAttributInstans,
+                            $class,
+                        );
+                    }
                 }
             }
         }
@@ -193,57 +218,110 @@ class TaskFieldsFactory
         );
     }
 
-    /** 
-     * @param ReflectionAttribute<Retain> $attribut
-     */
     private function retainPropertyBuild(
         ReflectionProperty $property,
-        ReflectionAttribute $attribut,
+        Retain $attributInstans,
+        ReflectionClass $class,
     ): RetainPropertyField {
         $propertyName = $property->getName();
-        $propertyType = $property->getType();
         $getter = null;
         $setter= null;
         if (!$property->isPublic()) {
-            [$setter, $getter] = $attribut->getArguments();
+            $getter = $attributInstans->getter;
+            $setter = $attributInstans->setter;
             if (is_null($setter) || is_null($getter)) {
                 throw new \RuntimeException('
-                    "Retain {$propertyName} must be public or provide getter and setter methods"
+                    "Retain property \"{$propertyName}\" must be public or provide getter and setter methods"
+                ');
+            }
+            $condition = method_exists($class->getName(), $getter)
+                && method_exists($class->getName(), $setter); 
+            if (!$condition) {
+                throw new \RuntimeException('
+                    "Retain \"{$propertyName}\" must be public or provide getter and setter methods"
+                ');
+            }
+            $refletionGetter = new ReflectionMethod($class->getName(), $getter);
+            $refletionSetter = new ReflectionMethod($class->getName(), $setter);
+
+            if (!($refletionGetter->isPublic() && $refletionSetter->isPublic())) {
+                throw new \RuntimeException('
+                    "Retain \"{$propertyName}\" must be public or provide public getter methods"
                 ');
             }
         }
 
         return new RetainPropertyField(
             $propertyName,
-            $propertyType,
             $setter,
             $getter,
         );
     }
 
-    /** 
-     * @param ReflectionAttribute<Logging> $attribut
-     */
     private function loggingPropretyBuild(
         ReflectionProperty $property,
-        ReflectionAttribute $attribut,
+        Logging $attributInstans,
+        ReflectionClass $class,
     ): LoggingPropertyField {
         $propertyName = $property->getName();
-        $propertyType = $property->getType();
         $getter = null;
          if (!$property->isPublic()) {
-            [$getter] = $attribut->getArguments();
+            $getter = $attributInstans->getter;
             if (is_null($getter)) {
                 throw new \RuntimeException('
-                    "Retain {$propertyName} must be public or provide getter methods"
+                    "Logging \"{$propertyName}\" must be public or provide public getter methods"
+                ');
+            }
+
+            if (!method_exists($class->getName(), $getter)) {
+                throw new \RuntimeException('
+                    "Retain \"{$propertyName}\" must be public or provide public getter methods"
+                ');
+            }
+
+            $refletionMetod = new ReflectionMethod($class->getName(), $getter);
+            if (!$refletionMetod->isPublic()) {
+                throw new \RuntimeException('
+                    "Retain {$propertyName} must be public or provide public getter methods"
                 ');
             }
         }
 
         return new LoggingPropertyField(
             $propertyName,
-            $propertyType,
             $getter,
         );
+    }
+
+    private function getPeriodicTaskAttibutOrFalse(
+        \ReflectionAttribute $attribut,
+    ): PeriodicTask|false {
+        if ($attribut->getName() !== PeriodicTask::class) {
+            return false;
+        }
+
+        $attributInstans = $attribut->newInstance();
+
+        if (!($attributInstans instanceof PeriodicTask)) {
+            throw new \RuntimeException("it can't happen");
+        }
+
+        return $attributInstans;
+    }
+
+    private function getEventTaskAttibutOrFalse(
+        \ReflectionAttribute $attribut,
+    ): EventTask|false {
+        if ($attribut->getName() !== EventTask::class) {
+            return false;
+        }
+
+        $attributInstans = $attribut->newInstance();
+
+        if (!($attributInstans instanceof EventTask)) {
+            throw new \RuntimeException("it can't happen");
+        }
+
+        return $attributInstans;
     }
 }

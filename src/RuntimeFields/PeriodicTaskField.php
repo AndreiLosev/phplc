@@ -2,13 +2,13 @@
 
 namespace Phplc\Core\RuntimeFields;
 
-use Phplc\Core\Сontracts\Task;
+use Phplc\Core\Contracts\Task;
 
 class PeriodicTaskField
 {
     /** 
      * @param RetainPropertyField[] $taskRetainPropertus 
-     * @param array<string, RetainPropertyField> $storageRetainProerty
+     * @param array<class-string, RetainPropertyField[]> $storageRetainProerty
      */
     public function __construct(
         private Task $task,

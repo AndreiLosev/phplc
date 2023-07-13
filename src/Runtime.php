@@ -2,9 +2,8 @@
 
 namespace Phplc\Core;
 
-use Illuminate\Container\Container;
+use Illuminate\Container\Container as IlluminateContainer;
 use Phplc\Core\Contracts\Task;
-use phpDocumentor\Reflection\Types\ClassString;
 use Phplc\Core\RuntimeFields\EventTaskField;
 use Phplc\Core\RuntimeFields\LoggingPropertyField;
 use Phplc\Core\RuntimeFields\PeriodicTaskField;
@@ -30,13 +29,16 @@ class Runtime
 
     private TaskFieldsFactory $taskFieldsFactory;
 
+    private Container $container;
+
     /** 
-     * @param array<ClassString<Task>> $tasks
+     * @param class-string<Task>[] $tasks
      */
     public function __construct(
-        private Container $container,
         private array $tasks,
+        IlluminateContainer $container,
     ) {
+        $this->container = new Container($container);
         $this->periodiTasks = [];
         $this->eventTasks = [];
         $this->loggingFields = [];
@@ -53,13 +55,14 @@ class Runtime
 
     private function loadAllUsedClasses(): void
     {
-        foreach ($this->tasks as $task) {
-            $this->container->make($task);
+        foreach ($this->tasks as $taskName) {
+            $this->container->makeTask($taskName);
         }
     }
 
-    private function configurateStorageAsSinglton(): void {
-    
+    private function configurateStorageAsSinglton(): void
+    {
+        /** @var class-string<Storage>[] */
         $storages = array_filter(
             get_declared_classes(),
             fn(string $name) => in_array(Storage::class, class_implements($name)),
@@ -71,16 +74,15 @@ class Runtime
     }
 
     private function configurateTasksAsSinglton(): void {
-        foreach ($this->tasks as $name) {
-            $this->container->singleton($name);
+        foreach ($this->tasks as $taskName) {
+            $this->container->singleton($taskName);
         }
     }
 
     private function setTaskFields(): void
     {
         foreach ($this->tasks as $taskName) {
-            /** @var Task */
-            $taskInstans = $this->container->make($taskName);
+            $taskInstans = $this->container->makeTask($taskName);
             $buildResult = $this->taskFieldsFactory->build($taskInstans);
 
             if (!empty($buildResult->periodicTask)) {

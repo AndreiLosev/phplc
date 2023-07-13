@@ -2,33 +2,27 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Illuminate\Container\Container;
-use Phplc\Core\RuntimeFields\Dto\PeriodicTaskBuildResult;
+class Test11
+{
+    public function publciPrint()
+    {
+        print_r('public');
+    }
 
-// class Test11 {
-//     private $x;
-//     public $y;
-//     protected $z;
+    private function privatePrint()
+    {
+        print_r('private');
+    }
+}
 
-//     public function __construct($x, $y, $z)
-//     {
-//         $this->x = $x;
-//         $this->y = $y;
-//         $this->z = $z;
-//     }
+$qwe = new Test11;
 
-//     public function printAll()
-//     {
-//         print_r($this);
-//     }
-// }
+print_r([
+    method_exists($qwe, 'publciPrint'),
+    method_exists($qwe, 'privatePrint'),
+]);
 
-
-// $xxx = new \ReflectionClass(Test11::class);
-
-// foreach ($xxx->getConstructor()->getParameters() as $param) {
-//     print_r($param->getName());
-// }
-
-$container = new Container(); 
-
+print_r([
+    is_callable([$qwe, 'publciPrint']),
+    is_callable([$qwe, 'privatePrint'])
+]);
