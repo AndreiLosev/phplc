@@ -1,8 +1,10 @@
 <?php
 
+use Phplc\Core\Contracts\Storage;
+
 require_once __DIR__ . '/vendor/autoload.php';
 
-class Test11
+class Test11 implements Storage
 {
     public function publciPrint()
     {

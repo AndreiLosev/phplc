@@ -15,6 +15,7 @@
         "illuminate/container": "^10.14"
     },
     "require-dev": {
-        "vimeo/psalm": "^5.13"
+        "vimeo/psalm": "^5.13",
+        "phpunit/phpunit": "^10.2"
     }
 }

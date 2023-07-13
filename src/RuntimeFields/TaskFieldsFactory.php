@@ -2,7 +2,6 @@
 
 namespace Phplc\Core\RuntimeFields;
 
-use Illuminate\Contracts\Cache\Store;
 use Phplc\Core\Attributes\EventTask;
 use Phplc\Core\Attributes\Logging;
 use Phplc\Core\Attributes\PeriodicTask;
@@ -14,6 +13,7 @@ use Phplc\Core\RuntimeFields\Dto\TaskFieldsFactoryBuildReuslt;
 use Phplc\Core\Contracts\Storage;
 use Phplc\Core\Contracts\Task;
 use Phplc\Core\RuntimeFields\Dto\SearchStoraePorpertyResult;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
@@ -74,8 +74,10 @@ class TaskFieldsFactory
         $taskPropertyFields = $this->searchPropertyAttriburs($reflectionClass);
         $searchResult = $this->searchStoraePorperty($reflectionClass);
 
-        $searchResult->loggingPropertyField[$reflectionClass->getName()]
-            = $taskPropertyFields->loggingProperty;
+        $loggingPropertyFields = [
+            ...$searchResult->loggingPropertyField,
+            $reflectionClass->getName() => $taskPropertyFields->loggingProperty
+        ];
 
         $period = $attributInstans->seconds * 1000 + $attributInstans->milliseconds;
 
@@ -88,7 +90,7 @@ class TaskFieldsFactory
 
         return new PeriodicTaskBuildResult(
             $periodicTasField,
-            $searchResult->loggingPropertyField,
+            $loggingPropertyFields,
         );
     }
 
@@ -104,8 +106,10 @@ class TaskFieldsFactory
 
         $searchResult = $this->searchStoraePorperty($reflectionClass);
 
-        $searchResult->loggingPropertyField[$reflectionClass->getName()]
-            = $taskPropertyFields->loggingProperty;
+        $loggingPropertyFields = [
+            ...$searchResult->loggingPropertyField,
+            $reflectionClass->getName() => $taskPropertyFields->loggingProperty,
+        ];
 
         $periodicTasField = new EventTaskField(
             $taskInstans,
@@ -116,7 +120,7 @@ class TaskFieldsFactory
 
         return new EventTaskBuildResult(
             $periodicTasField,
-            $searchResult->loggingPropertyField,
+            $loggingPropertyFields,
         );
     }
 
@@ -127,7 +131,7 @@ class TaskFieldsFactory
         ReflectionClass $reflectionClass,
     ): SearchStoraePorpertyResult
     {
-        /** @var array<class-string<Store>, SearchPropertyAttribursResult> */
+        /** @var array<class-string<Storage>, SearchPropertyAttribursResult> */
         $storagPropertyFields = [];
 
         $refletionConstructor = $reflectionClass->getConstructor();
@@ -149,6 +153,8 @@ class TaskFieldsFactory
                     continue;
                 }
 
+                /** @var class-string<Storage> $typeName 
+                 */
                 if (!class_exists($typeName)) {
                     continue;
                 }
@@ -175,7 +181,7 @@ class TaskFieldsFactory
     }
 
     /** 
-     * @param ReflectionClass $class 
+     * @param ReflectionClass<Task|Storage> $class 
      */
     private function searchPropertyAttriburs(
         ReflectionClass $class,
@@ -218,6 +224,9 @@ class TaskFieldsFactory
         );
     }
 
+    /** 
+     * @param ReflectionClass<Task|Storage> $class 
+     */
     private function retainPropertyBuild(
         ReflectionProperty $property,
         Retain $attributInstans,
@@ -258,6 +267,9 @@ class TaskFieldsFactory
         );
     }
 
+    /** 
+     * @param  ReflectionClass<Task|Storage> $class 
+     */
     private function loggingPropretyBuild(
         ReflectionProperty $property,
         Logging $attributInstans,
@@ -293,6 +305,9 @@ class TaskFieldsFactory
         );
     }
 
+    /** 
+     * @param ReflectionAttribute<object> $attribut 
+     */
     private function getPeriodicTaskAttibutOrFalse(
         \ReflectionAttribute $attribut,
     ): PeriodicTask|false {
@@ -309,6 +324,9 @@ class TaskFieldsFactory
         return $attributInstans;
     }
 
+    /** 
+     * @param ReflectionAttribute<object> $attribut 
+     */
     private function getEventTaskAttibutOrFalse(
         \ReflectionAttribute $attribut,
     ): EventTask|false {

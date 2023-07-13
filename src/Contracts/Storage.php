@@ -5,3 +5,4 @@ namespace Phplc\Core\Contracts;
 interface Storage
 {
 }
+
