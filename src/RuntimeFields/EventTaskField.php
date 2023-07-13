@@ -11,9 +11,9 @@ class EventTaskField
      * @param array<string, RetainPropertyField[]> $storageRetainProerty
      */
     public function __construct(
-        private Task $task,
-        private string $eventName, 
-        private array $taskRetainPropertus,
-        private array $storageRetainProerty,
+        protected Task $task,
+        protected string $eventName, 
+        protected array $taskRetainPropertus,
+        protected array $storageRetainProerty,
     ) {}
 }

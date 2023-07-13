@@ -1,30 +1,11 @@
 <?php
 
-use Phplc\Core\Contracts\Storage;
+use Illuminate\Container\Container;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-class Test11 implements Storage
+class Test123
 {
-    public function publciPrint()
-    {
-        print_r('public');
-    }
-
-    private function privatePrint()
-    {
-        print_r('private');
-    }
+    public $x = 6;
 }
 
-$qwe = new Test11;
-
-print_r([
-    method_exists($qwe, 'publciPrint'),
-    method_exists($qwe, 'privatePrint'),
-]);
-
-print_r([
-    is_callable([$qwe, 'publciPrint']),
-    is_callable([$qwe, 'privatePrint'])
-]);

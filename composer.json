@@ -11,6 +11,9 @@
             "email": "loseu.andrei.g@gmail.com"
         }
     ],
+    "scripts": {
+        "test": "vendor/bin/phpunit --testdox --colors tests"
+    },
     "require": {
         "illuminate/container": "^10.14"
     },

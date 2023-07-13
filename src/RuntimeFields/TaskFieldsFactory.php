@@ -6,6 +6,7 @@ use Phplc\Core\Attributes\EventTask;
 use Phplc\Core\Attributes\Logging;
 use Phplc\Core\Attributes\PeriodicTask;
 use Phplc\Core\Attributes\Retain;
+use Phplc\Core\Container;
 use Phplc\Core\RuntimeFields\Dto\EventTaskBuildResult;
 use Phplc\Core\RuntimeFields\Dto\PeriodicTaskBuildResult;
 use Phplc\Core\RuntimeFields\Dto\SearchPropertyAttribursResult;
@@ -21,6 +22,10 @@ use ReflectionMethod;
 
 class TaskFieldsFactory 
 {
+    public function __construct(
+        protected Container $container,
+    ) {}
+
     public function build(
         Task $taskInstans,
     ): TaskFieldsFactoryBuildReuslt {
@@ -81,11 +86,13 @@ class TaskFieldsFactory
 
         $period = $attributInstans->seconds * 1000 + $attributInstans->milliseconds;
 
-        $periodicTasField = new PeriodicTaskField(
-            $taskInstans,
-            $period,
-            $taskPropertyFields->retainProeprty,
-            $searchResult->retainPropertyFields,
+        $periodicTasField = $this->container->makePeriodictTaskField(
+            PeriodicTaskField::class, [
+                $taskInstans,
+                $period,
+                $taskPropertyFields->retainProeprty,
+                $searchResult->retainPropertyFields,
+            ],
         );
 
         return new PeriodicTaskBuildResult(
@@ -111,11 +118,13 @@ class TaskFieldsFactory
             $reflectionClass->getName() => $taskPropertyFields->loggingProperty,
         ];
 
-        $periodicTasField = new EventTaskField(
-            $taskInstans,
-            $attributInstans->eventName,
-            $taskPropertyFields->retainProeprty,
-            $searchResult->retainPropertyFields,
+        $periodicTasField = $this->container->makeEventTaskField(
+            EventTaskField::class, [
+                $taskInstans,
+                $attributInstans->eventName,
+                $taskPropertyFields->retainProeprty,
+                $searchResult->retainPropertyFields,
+            ]
         );
 
         return new EventTaskBuildResult(

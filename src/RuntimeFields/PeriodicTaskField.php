@@ -11,10 +11,10 @@ class PeriodicTaskField
      * @param array<class-string, RetainPropertyField[]> $storageRetainProerty
      */
     public function __construct(
-        private Task $task,
-        private int $preiodMilis,
-        private array $taskRetainPropertus,
-        private array $storageRetainProerty,
-        private int $startTime = 0,
+        protected Task $task,
+        protected int $preiodMilis,
+        protected array $taskRetainPropertus,
+        protected array $storageRetainProerty,
+        protected int $startTime = 0,
     ) {}
 }

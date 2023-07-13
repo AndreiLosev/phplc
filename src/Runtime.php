@@ -15,27 +15,27 @@ class Runtime
     /** 
      * @var PeriodicTaskField[] 
      */
-    private array $periodiTasks;
+    protected array $periodiTasks;
 
     /** 
      * @var EventTaskField[] 
      */
-    private array $eventTasks;
+    protected array $eventTasks;
 
     /** 
      * @var array<string, LoggingPropertyField[]> 
      */
-    private array $loggingFields;
+    protected array $loggingFields;
 
-    private TaskFieldsFactory $taskFieldsFactory;
+    protected TaskFieldsFactory $taskFieldsFactory;
 
-    private Container $container;
+    protected Container $container;
 
     /** 
      * @param class-string<Task>[] $tasks
      */
     public function __construct(
-        private array $tasks,
+        protected array $tasks,
         IlluminateContainer $container,
     ) {
         $this->container = new Container($container);
@@ -52,6 +52,18 @@ class Runtime
         $this->configurateTasksAsSinglton();
         $this->setTaskFields();
     }
+
+    /** 
+     * @return array<string, mixed> 
+     */
+    public function getAll(): array
+    {
+        return [
+            'periodicTask' => $this->periodiTasks,
+            'eventTask' => $this->eventTasks,
+            'loggingFields' => $this->loggingFields,
+        ];
+    } 
 
     private function loadAllUsedClasses(): void
     {
