@@ -12,7 +12,7 @@ class PeriodicTaskField
      */
     public function __construct(
         protected Task $task,
-        protected int $preiodMilis,
+        protected int $periodMilis,
         protected array $taskRetainPropertus,
         protected array $storageRetainProerty,
         protected int $startTime = 0,

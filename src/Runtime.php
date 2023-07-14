@@ -53,17 +53,6 @@ class Runtime
         $this->setTaskFields();
     }
 
-    /** 
-     * @return array<string, mixed> 
-     */
-    public function getAll(): array
-    {
-        return [
-            'periodicTask' => $this->periodiTasks,
-            'eventTask' => $this->eventTasks,
-            'loggingFields' => $this->loggingFields,
-        ];
-    } 
 
     private function loadAllUsedClasses(): void
     {

@@ -22,10 +22,6 @@ use ReflectionMethod;
 
 class TaskFieldsFactory 
 {
-    public function __construct(
-        protected Container $container,
-    ) {}
-
     public function build(
         Task $taskInstans,
     ): TaskFieldsFactoryBuildReuslt {
@@ -86,13 +82,11 @@ class TaskFieldsFactory
 
         $period = $attributInstans->seconds * 1000 + $attributInstans->milliseconds;
 
-        $periodicTasField = $this->container->makePeriodictTaskField(
-            PeriodicTaskField::class, [
-                $taskInstans,
-                $period,
-                $taskPropertyFields->retainProeprty,
-                $searchResult->retainPropertyFields,
-            ],
+        $periodicTasField = new PeriodicTaskField(
+            $taskInstans,
+            $period,
+            $taskPropertyFields->retainProeprty,
+            $searchResult->retainPropertyFields,
         );
 
         return new PeriodicTaskBuildResult(
@@ -118,13 +112,11 @@ class TaskFieldsFactory
             $reflectionClass->getName() => $taskPropertyFields->loggingProperty,
         ];
 
-        $periodicTasField = $this->container->makeEventTaskField(
-            EventTaskField::class, [
-                $taskInstans,
-                $attributInstans->eventName,
-                $taskPropertyFields->retainProeprty,
-                $searchResult->retainPropertyFields,
-            ]
+        $periodicTasField = new EventTaskField(
+            $taskInstans,
+            $attributInstans->eventName,
+            $taskPropertyFields->retainProeprty,
+            $searchResult->retainPropertyFields,
         );
 
         return new EventTaskBuildResult(

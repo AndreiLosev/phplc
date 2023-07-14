@@ -26,42 +26,6 @@ class Container
     }
 
     /**
-     * @param class-string<PeriodicTaskField> $abstract 
-     * @param mixed[] $params
-     *
-     * @throws BindingResolutionException
-     */
-    public function makePeriodictTaskField(
-        string $abstract,
-        array $params,
-    ): PeriodicTaskField {
-        $instans = $this->container->make($abstract, $params);
-
-        if (!($instans instanceof PeriodicTaskField)) {
-            throw new BindingResolutionException;
-        }
-        return $instans;
-    }
-
-    /**
-     * @param class-string<EventTaskField> $abstract 
-     * @param mixed[] $params
-     *
-     * @throws BindingResolutionException
-     */
-    public function makeEventTaskField(
-        string $abstract,
-        array $params,
-    ): EventTaskField {
-        $instans = $this->container->make($abstract, $params);
-
-        if (!($instans instanceof EventTaskField)) {
-            throw new BindingResolutionException;
-        }
-        return $instans;
-    }
-
-    /**
      * @param  class-string  $abstract
      * @param  \Closure|string|null  $concrete
      */
