@@ -9,3 +9,6 @@ class Test123
     public $x = 6;
 }
 
+
+    var_dump((3 || 2));
+

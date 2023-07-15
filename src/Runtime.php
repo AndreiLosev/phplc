@@ -95,6 +95,9 @@ class Runtime
             }
 
             foreach ($buildResult->loggingPropertyFields as $key => $fild) {
+                if (count($fild) === 0) {
+                    continue;
+                }
                 $this->loggingFields[$key] = $fild;
             }
         }

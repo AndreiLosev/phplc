@@ -6,7 +6,6 @@ use Phplc\Core\Attributes\EventTask;
 use Phplc\Core\Attributes\Logging;
 use Phplc\Core\Attributes\PeriodicTask;
 use Phplc\Core\Attributes\Retain;
-use Phplc\Core\Container;
 use Phplc\Core\RuntimeFields\Dto\EventTaskBuildResult;
 use Phplc\Core\RuntimeFields\Dto\PeriodicTaskBuildResult;
 use Phplc\Core\RuntimeFields\Dto\SearchPropertyAttribursResult;
@@ -261,11 +260,7 @@ class TaskFieldsFactory
             }
         }
 
-        return new RetainPropertyField(
-            $propertyName,
-            $setter,
-            $getter,
-        );
+        return new RetainPropertyField($propertyName, $getter, $setter);
     }
 
     /** 
@@ -300,10 +295,7 @@ class TaskFieldsFactory
             }
         }
 
-        return new LoggingPropertyField(
-            $propertyName,
-            $getter,
-        );
+        return new LoggingPropertyField($propertyName, $getter);
     }
 
     /** 
