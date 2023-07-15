@@ -4,5 +4,5 @@ namespace Phplc\Core\Contracts;
 
 interface Task
 {
-    public function __invoke(): void;
+    public function execute(): void;
 }

@@ -8,7 +8,7 @@ use Phplc\Core\Contracts\Task;
 #[EventTask('testevent')]
 class SimpleEventTask implements Task
 {
-    public  function  __invoke(): void
+    public  function  execute(): void
     {
         print_r('OK' . PHP_EOL);
     }

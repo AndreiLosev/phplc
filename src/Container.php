@@ -4,8 +4,6 @@ namespace Phplc\Core;
 
 use Illuminate\Container\Container as IlluminateContainer;
 use Phplc\Core\Contracts\Task;
-use Phplc\Core\RuntimeFields\EventTaskField;
-use Phplc\Core\RuntimeFields\PeriodicTaskField;
 use Illuminate\Contracts\Container\BindingResolutionException;
 
 class Container

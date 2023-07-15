@@ -39,7 +39,7 @@ class PeriodicTaskWIthRetainAndLoggingProeprty implements Task
         return $this->q4;
     }
 
-    public  function  __invoke(): void
+    public  function  execute(): void
     {
         print_r('OK' . PHP_EOL);
     }

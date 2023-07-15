@@ -13,7 +13,7 @@ class EvenTaskWithStores implements Task
         private StoreTest2 $storeTest2,
     ) {}
 
-    public function __invoke(): void
+    public function execute(): void
     {
         print_r('Test 1 2');
     }

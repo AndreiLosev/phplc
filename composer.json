@@ -15,10 +15,11 @@
         "test": "vendor/bin/phpunit --testdox --colors --display-warnings tests"
     },
     "require": {
-        "illuminate/container": "^10.14"
+        "illuminate/container": "^10.14",
+        "amphp/amp": "^3.0"
     },
     "require-dev": {
-        "vimeo/psalm": "^5.13",
-        "phpunit/phpunit": "^10.2"
+        "phpunit/phpunit": "^10.2",
+        "psalm/phar": "^5.13"
     }
 }

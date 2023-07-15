@@ -8,7 +8,7 @@ use Phplc\Core\Contracts\Task;
 #[PeriodicTask(1, 150)]
 class SimplePerioditTask implements Task
 {
-    public  function  __invoke(): void
+    public  function  execute(): void
     {
         print_r('OK' . PHP_EOL);
     }

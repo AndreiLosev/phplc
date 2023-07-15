@@ -2,6 +2,8 @@
 
 namespace Phplc\Core;
 
+use Amp\Future;
+use function Amp\async;
 use Illuminate\Container\Container as IlluminateContainer;
 use Phplc\Core\Contracts\Task;
 use Phplc\Core\RuntimeFields\EventTaskField;
@@ -53,6 +55,24 @@ class Runtime
         $this->setTaskFields();
     }
 
+    public function run(): void
+    {
+        $periodiTasksFuture = async($this->runPeriodicTasks(...));
+
+        Future\awaitAll([
+            $periodiTasksFuture,
+        ]);
+    }
+
+    private function runPeriodicTasks(): void
+    {
+        $fetures = [];
+        for ($i = 0; $i < count($this->periodiTasks); $i++) {
+            $fetures[] = async($this->periodiTasks[$i]->run(...));        
+        }
+
+       Future\awaitAll($fetures);
+    }
 
     private function loadAllUsedClasses(): void
     {
