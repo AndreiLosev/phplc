@@ -18,6 +18,7 @@ use ReflectionClass;
 use ReflectionNamedType;
 use ReflectionProperty;
 use ReflectionMethod;
+use Phplc\Core\Execprions\BuildExecptions;
 
 class TaskFieldsFactory 
 {
@@ -148,16 +149,16 @@ class TaskFieldsFactory
                 }
 
                 $typeName = $refletionType->getName();
-                
+
+                if (!class_exists($typeName)) {
+                    continue;
+                }
+
                 if (!in_array(Storage::class, class_implements($typeName))) {
                     continue;
                 }
 
-                /** @var class-string<Storage> $typeName 
-                 */
-                if (!class_exists($typeName)) {
-                    continue;
-                }
+                /** @var class-string<Storage> $typeName */
                 $reflectStorageClass = new ReflectionClass($typeName);
                 $storagPropertyFields[$typeName] = $this
                     ->searchPropertyAttriburs($reflectStorageClass);
@@ -239,24 +240,22 @@ class TaskFieldsFactory
             $getter = $attributInstans->getter;
             $setter = $attributInstans->setter;
             if (is_null($setter) || is_null($getter)) {
-                throw new \RuntimeException('
-                    "Retain property \"{$propertyName}\" must be public or provide getter and setter methods"
-                ');
+                $mess = "Retain \"{$propertyName}\" must be public or provide public getter methods";
+                throw new \RuntimeException($mess);
             }
             $condition = method_exists($class->getName(), $getter)
                 && method_exists($class->getName(), $setter); 
             if (!$condition) {
-                throw new \RuntimeException('
-                    "Retain \"{$propertyName}\" must be public or provide getter and setter methods"
-                ');
+                $mess = "Retain \"{$propertyName}\" must be public or provide public getter methods";
+                throw new \RuntimeException($mess);
+
             }
             $refletionGetter = new ReflectionMethod($class->getName(), $getter);
             $refletionSetter = new ReflectionMethod($class->getName(), $setter);
 
             if (!($refletionGetter->isPublic() && $refletionSetter->isPublic())) {
-                throw new \RuntimeException('
-                    "Retain \"{$propertyName}\" must be public or provide public getter methods"
-                ');
+                $mess = "Retain \"{$propertyName}\" must be public or provide public getter methods";
+                throw new \RuntimeException($mess);
             }
         }
 
@@ -276,22 +275,19 @@ class TaskFieldsFactory
          if (!$property->isPublic()) {
             $getter = $attributInstans->getter;
             if (is_null($getter)) {
-                throw new \RuntimeException('
-                    "Logging \"{$propertyName}\" must be public or provide public getter methods"
-                ');
+                $mess = "logging \"{$propertyName}\" must be public or provide public getter methods";
+                throw new \RuntimeException($mess);
             }
 
             if (!method_exists($class->getName(), $getter)) {
-                throw new \RuntimeException('
-                    "Retain \"{$propertyName}\" must be public or provide public getter methods"
-                ');
+                $mess = "Logging \"{$propertyName}\" must be public or provide public getter methods";
+                throw new \RuntimeException($mess);
             }
 
             $refletionMetod = new ReflectionMethod($class->getName(), $getter);
             if (!$refletionMetod->isPublic()) {
-                throw new \RuntimeException('
-                    "Retain {$propertyName} must be public or provide public getter methods"
-                ');
+                $mess = "Logging \"{$propertyName}\" must be public or provide public getter methods";
+                throw new \RuntimeException($mess);
             }
         }
 

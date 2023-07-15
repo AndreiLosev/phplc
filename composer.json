@@ -12,7 +12,7 @@
         }
     ],
     "scripts": {
-        "test": "vendor/bin/phpunit --testdox --colors tests"
+        "test": "vendor/bin/phpunit --testdox --colors --display-warnings tests"
     },
     "require": {
         "illuminate/container": "^10.14"

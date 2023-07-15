@@ -4,15 +4,17 @@ namespace tests;
 
 use Illuminate\Container\Container;
 use PHPUnit\Framework\TestCase;
-use Phplc\Core\Attributes\PeriodicTask;
 use Phplc\Core\Runtime;
 use Phplc\Core\RuntimeFields\EventTaskField;
 use Phplc\Core\RuntimeFields\LoggingPropertyField;
 use Phplc\Core\RuntimeFields\PeriodicTaskField;
 use Phplc\Core\RuntimeFields\RetainPropertyField;
+use Phplc\Core\TestClsses\EvenTaskWithStores;
 use Phplc\Core\TestClsses\PeriodicTaskWIthRetainAndLoggingProeprty;
 use Phplc\Core\TestClsses\SimpleEventTask;
 use Phplc\Core\TestClsses\SimplePerioditTask;
+use Phplc\Core\TestClsses\StoreTest1;
+use Phplc\Core\TestClsses\StoreTest2;
 
 class RuntimeBuildTest extends TestCase
 {
@@ -114,6 +116,76 @@ class RuntimeBuildTest extends TestCase
                         $this->assertTrue(false);
                     }
                 }
+            }
+        }
+
+    }
+
+    public function testRetainAndLoggingInStorage(): void
+    {
+        $container = new Container();
+        $runtime = new Runtime([
+            SimplePerioditTask::class,
+            SimpleEventTask::class,
+            PeriodicTaskWIthRetainAndLoggingProeprty::class,
+            EvenTaskWithStores::class,
+        ], $container);
+
+        $runtime->build();
+
+        $periodicTaskFields = $this->getPrivatPropert($runtime, 'periodiTasks');
+        $eventTaskFields = $this->getPrivatPropert($runtime, 'eventTasks');
+        $loggingFields = $this->getPrivatPropert($runtime, 'loggingFields');
+
+        $this->assertSame(count($periodicTaskFields), 2);
+        $this->assertSame(count($eventTaskFields), 2);
+        $this->assertSame(count($loggingFields), 3);
+        $this->assertSame(count($loggingFields[PeriodicTaskWIthRetainAndLoggingProeprty::class]), 2);
+        $this->assertSame(count($loggingFields[StoreTest1::class]), 1);
+        $this->assertSame(count($loggingFields[StoreTest2::class]), 1);
+
+        foreach ($loggingFields[StoreTest1::class] as $loggingField) {
+            $this->assertTrue($loggingField instanceof LoggingPropertyField);
+            if ($loggingField->name === 'x2') {
+                $this->assertSame($loggingField->getter, 'getX2');
+            } else {
+                $this->assertTrue(false);
+            }
+        }
+
+        foreach ($loggingFields[StoreTest2::class] as $loggingField) {
+            $this->assertTrue($loggingField instanceof LoggingPropertyField);
+            if ($loggingField->name === 'x4') {
+                $this->assertSame($loggingField->getter, 'getX4');
+            } else {
+                $this->assertTrue(false);
+            }
+        }
+
+        foreach ($eventTaskFields as $field) {
+            $task = $this->getPrivatPropert($field, 'task');
+
+            $this->assertTrue(
+                $task instanceof SimpleEventTask
+                    || $task instanceof EvenTaskWithStores
+            );
+
+            if ($task instanceof EvenTaskWithStores) {
+                $storageRetainProerty = $this->getPrivatPropert($field, 'storageRetainProerty');
+
+                $this->assertTrue(is_array($storageRetainProerty) && count($storageRetainProerty) === 2);
+
+                $retainStoreProperty = $storageRetainProerty[StoreTest1::class];
+
+                $this->assertSame($retainStoreProperty[0]->name, 'x1');
+                $this->assertNull($retainStoreProperty[0]->setter);
+                $this->assertNull($retainStoreProperty[0]->getter);
+
+                $retainStoreProperty = $storageRetainProerty[StoreTest2::class];
+
+                $this->assertSame($retainStoreProperty[0]->name, 'x3');
+                $this->assertSame($retainStoreProperty[0]->setter, 'setX3');
+                $this->assertSame($retainStoreProperty[0]->getter, 'getX3');
             }
         }
 

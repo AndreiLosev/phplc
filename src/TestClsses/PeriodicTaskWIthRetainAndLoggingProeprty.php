@@ -16,13 +16,13 @@ class PeriodicTaskWIthRetainAndLoggingProeprty implements Task
     #[Retain('setQ2', 'getQ2')]
     private  string $q2 = '2';
 
-    #[Retain]
-    #[Logging]
-    public bool $q3 = false;
-
-
-    #[Logging('getQ4')]
-    protected float $q4 = 0.1;
+    public function __construct(
+        #[Retain]
+        #[Logging]
+        public bool $q3 = false,
+        #[Logging('getQ4')]
+        protected float $q4 = 0.1,
+    ) {}
 
     public function getQ2(): string
     {
