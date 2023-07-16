@@ -2,12 +2,12 @@
 
 namespace Phplc\Core\RuntimeFields;
 
-// use function Amp\delay;
+use Amp;
 use Phplc\Core\Contracts\Task;
 
 class PeriodicTaskField
 {
-    protected int $startTime;
+    protected float $startTime;
     protected bool $cancelToken;
 
     /** 
@@ -16,7 +16,7 @@ class PeriodicTaskField
      */
     public function __construct(
         protected Task $task,
-        protected int $periodMilis,
+        protected float $periodMilis,
         protected array $taskRetainPropertus,
         protected array $storageRetainProerty,
     ) {
@@ -39,6 +39,7 @@ class PeriodicTaskField
 
             try {
                 $this->task->execute();
+                // TODO retain property
             } catch (\Throwable $th) {
                 //TODO;
             }
@@ -49,14 +50,13 @@ class PeriodicTaskField
 
     private function setStartTime(): void
     {
-        $now = hrtime(true);
-        $this->startTime = (int)($now / 1000000);
+        $this->startTime = Amp\now();
     }
 
     private function getDelay(): float
     {
-        $now = (int)(hrtime(true) / 1000000);
+        $now = Amp\now();
         $executionTime = $now - $this->startTime;
-        return ($this->periodMilis - $executionTime) / 1000;
+        return $this->periodMilis - $executionTime;
     }
 }

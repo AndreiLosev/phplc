@@ -3,7 +3,10 @@
 namespace Phplc\Core;
 
 use Amp\Future;
+use Phplc\Core\RuntimeFields\EventProvider;
+use Phplc\Core\RuntimeFields\InnerSystemBuilder;
 use function Amp\async;
+use function Amp\delay;
 use Illuminate\Container\Container as IlluminateContainer;
 use Phplc\Core\Contracts\Task;
 use Phplc\Core\RuntimeFields\EventTaskField;
@@ -17,27 +20,36 @@ class Runtime
     /** 
      * @var PeriodicTaskField[] 
      */
-    protected array $periodiTasks;
+    private array $periodiTasks;
 
     /** 
      * @var EventTaskField[] 
      */
-    protected array $eventTasks;
+    private array $eventTasks;
+
+    private InnerSystemBuilder $innerSystemBuilder;
 
     /** 
      * @var array<string, LoggingPropertyField[]> 
      */
-    protected array $loggingFields;
+    private array $loggingFields;
 
-    protected TaskFieldsFactory $taskFieldsFactory;
+    private TaskFieldsFactory $taskFieldsFactory;
 
-    protected Container $container;
+    private Container $container;
+
+    private EventProvider $eventProvider;
+
+    /** 
+     * @var string[] 
+     */
+    private array $events;
 
     /** 
      * @param class-string<Task>[] $tasks
      */
     public function __construct(
-        protected array $tasks,
+        private array $tasks,
         IlluminateContainer $container,
     ) {
         $this->container = new Container($container);
@@ -45,6 +57,9 @@ class Runtime
         $this->eventTasks = [];
         $this->loggingFields = [];
         $this->taskFieldsFactory = new TaskFieldsFactory();
+        $this->events = [];
+        $this->eventProvider = new EventProvider();
+        $this->innerSystemBuilder = new InnerSystemBuilder();
     }
 
     public function build(): void
@@ -52,15 +67,22 @@ class Runtime
         $this->loadAllUsedClasses();
         $this->configurateStorageAsSinglton();
         $this->configurateTasksAsSinglton();
+        $this->innerSystemBuilder->build(
+            $this->container,
+            $this->eventProvider,
+        );
+
         $this->setTaskFields();
     }
 
     public function run(): void
     {
         $periodiTasksFuture = async($this->runPeriodicTasks(...));
+        $eventTasksFuture = async($this->runEvemtTasks(...));
 
         Future\awaitAll([
             $periodiTasksFuture,
+            $eventTasksFuture,
         ]);
     }
 
@@ -72,6 +94,24 @@ class Runtime
         }
 
        Future\awaitAll($fetures);
+    }
+
+    private function runEvemtTasks(): void
+    {
+        while ($event = $this->eventProvider->shift()) {
+            if ($this->eventProvider->isRepeat($event)) {
+                $this->next();
+                continue;
+            }
+
+            for ($i = 0; $i < count($this->eventTasks); $i++) {
+                if ($this->eventTasks[$i]->match($event)) {
+                    $this->eventTasks[$i]->run();
+                }
+            }
+
+            $this->next();
+        }
     }
 
     private function loadAllUsedClasses(): void
@@ -121,5 +161,10 @@ class Runtime
                 $this->loggingFields[$key] = $fild;
             }
         }
+    }
+
+    private function next(): void
+    {
+        delay(0.01);
     }
 }

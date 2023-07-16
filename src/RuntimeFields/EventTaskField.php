@@ -16,4 +16,19 @@ class EventTaskField
         protected array $taskRetainPropertus,
         protected array $storageRetainProerty,
     ) {}
+
+    public function match(string $eventName): bool
+    {
+        return $this->eventName === $eventName;
+    }
+
+    public function run(): void
+    {
+        try {
+            $this->task->execute();
+            // TODO retain property
+        } catch (\Throwable $th) {
+            //TODO;
+        }
+    }
 }

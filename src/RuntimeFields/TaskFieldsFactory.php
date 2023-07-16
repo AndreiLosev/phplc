@@ -80,7 +80,7 @@ class TaskFieldsFactory
             $reflectionClass->getName() => $taskPropertyFields->loggingProperty
         ];
 
-        $period = $attributInstans->seconds * 1000 + $attributInstans->milliseconds;
+        $period = $attributInstans->seconds + $attributInstans->milliseconds / 1000;
 
         $periodicTasField = new PeriodicTaskField(
             $taskInstans,
