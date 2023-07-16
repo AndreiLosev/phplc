@@ -117,7 +117,7 @@ class Runtime
     private function loadAllUsedClasses(): void
     {
         foreach ($this->tasks as $taskName) {
-            $this->container->makeTask($taskName);
+            $this->container->make($taskName);
         }
     }
 
@@ -143,7 +143,7 @@ class Runtime
     private function setTaskFields(): void
     {
         foreach ($this->tasks as $taskName) {
-            $taskInstans = $this->container->makeTask($taskName);
+            $taskInstans = $this->container->make($taskName);
             $buildResult = $this->taskFieldsFactory->build($taskInstans);
 
             if (!empty($buildResult->periodicTask)) {

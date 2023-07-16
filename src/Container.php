@@ -14,17 +14,6 @@ class Container
     ) {}
 
     /**
-     * @param class-string<Task> $abstract 
-     * @throws BindingResolutionException
-     */
-    public function makeTask($abstract): Task
-    {
-        /** @var Task */
-        $instans = $this->container->make($abstract);
-        return $instans;
-    }
-
-    /**
      * @param  class-string  $abstract
      * @param  \Closure|string|null  $concrete
      */
@@ -33,26 +22,17 @@ class Container
         $this->container->singleton($abstract, $concrete);
     }
 
-    /**
-     * @param class-string<EventProvider> $abstract 
-     * @throws BindingResolutionException
-     */
-    public function makeEventProvider($abstract): EventProvider
-    {
-        /** @var EventProvider */
-        $instans = $this->container->make($abstract);
-        return $instans;    
-    }
-
     /** 
      * @template T 
      * @param class-string<T> $abstract 
      * @throws BindingResolutionException
      * @return T
      */
-    public function makeAny($abstract): mixed
+    public function make($abstract): mixed
     {
-        return $this->container->make($abstract);
+        /** @var T */
+        $instans = $this->container->make($abstract);
+        return $instans;
     }
 
     /**
