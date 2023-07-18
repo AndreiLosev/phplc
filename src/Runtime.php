@@ -2,10 +2,10 @@
 
 namespace Phplc\Core;
 
+use Amp\DeferredCancellation;
 use Amp\Future;
 use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
 use Phplc\Core\RuntimeFields\LoggingPropertyFieldsCollection;
-use Phplc\Core\RuntimeFields\LoggingPropertyFieldsCollectioncs;
 use Phplc\Core\RuntimeFields\PeriodicTaskFieldsCollection;
 use Phplc\Core\System\CommandsServer\Server;
 use Phplc\Core\System\EventProvider;
@@ -26,6 +26,8 @@ class Runtime
 
     private Container $container;
 
+    private DeferredCancellation $cancellationToken;
+
     /** 
      * @param class-string<Task>[] $tasks
      */
@@ -36,6 +38,7 @@ class Runtime
         $this->container = new Container($container);
         $this->taskFieldsFactory = new TaskFieldsFactory();
         $this->innerSystemBuilder = new InnerSystemBuilder();
+        $this->cancellationToken = new DeferredCancellation();
     }
 
     public function build(): void
@@ -59,7 +62,10 @@ class Runtime
             $this->innerEventExecutor(...)
         );
 
-        $commandServer = async($this->container->make(Server::class)->lisnet(...));
+        $commandServer = async(
+            $this->container->make(Server::class)->lisnet(...),
+            $this->cancellationToken->getCancellation(),
+        );
 
         Future\awaitAll([
             $periodiTasksFuture,
@@ -150,5 +156,6 @@ class Runtime
     {
         $this->container->make(EventProvider::class)->cancel();
         $this->container->make(PeriodicTaskFieldsCollection::class)->cancel();
+        $this->cancellationToken->cancel();
     }
 }

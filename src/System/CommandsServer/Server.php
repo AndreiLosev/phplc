@@ -2,6 +2,7 @@
 
 namespace Phplc\Core\System\CommandsServer;
 
+use Amp\Cancellation;
 use Amp\Socket;
 use Phplc\Core\Container;
 use stdClass;
@@ -14,11 +15,11 @@ class Server
         private string $socketAdr = '127.0.0.1:9191',
     ) {}
 
-    public function lisnet(): void
+    public function lisnet(Cancellation $cancellation): void
     {
         $server = Socket\listen($this->socketAdr);
 
-        while ($socket = $server->accept()) {
+        while ($socket = $server->accept($cancellation)) {
             async(fn() => $this->handler($socket));
         }
     }
