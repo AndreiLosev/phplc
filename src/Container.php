@@ -3,9 +3,7 @@
 namespace Phplc\Core;
 
 use Illuminate\Container\Container as IlluminateContainer;
-use Phplc\Core\Contracts\Task;
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Phplc\Core\RuntimeFields\EventProvider;
 
 class Container
 {

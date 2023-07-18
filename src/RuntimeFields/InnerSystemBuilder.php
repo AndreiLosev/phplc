@@ -5,6 +5,7 @@ namespace Phplc\Core\RuntimeFields;
 use Phplc\Core\Container;
 use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\System\EventDispatcherDefault;
+use Phplc\Core\System\EventProvider;
 
 class InnerSystemBuilder
 {
@@ -32,5 +33,11 @@ class InnerSystemBuilder
                 $eventProvider->dispatchEvent(...),
             ),
         );
+    }
+
+    private function buildCommandServer(
+        Container $container,
+    ): void {
+
     }
 }

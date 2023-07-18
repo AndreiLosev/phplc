@@ -1,6 +1,6 @@
 <?php
 
-namespace Phplc\Core\RuntimeFields;
+namespace Phplc\Core\System;
 
 class EventProvider
 {
@@ -43,5 +43,10 @@ class EventProvider
             $this->queue,
             fn(string $v) => $v !== self::REPEAT,
         );   
+    }
+
+    public function isInnerSystemEvent(string $event): bool
+    {
+        return is_int(strpos($event, InnerSysteEvents::INNER_PREFIX));
     }
 }

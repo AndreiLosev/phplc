@@ -3,8 +3,9 @@
 namespace Phplc\Core;
 
 use Amp\Future;
-use Phplc\Core\RuntimeFields\EventProvider;
+use Phplc\Core\System\EventProvider;
 use Phplc\Core\RuntimeFields\InnerSystemBuilder;
+use Phplc\Core\System\InnerSysteEvents;
 use function Amp\async;
 use function Amp\delay;
 use Illuminate\Container\Container as IlluminateContainer;
@@ -104,6 +105,12 @@ class Runtime
                 continue;
             }
 
+            if ($this->eventProvider->isInnerSystemEvent($event)) {
+                $this->innerEventEcecuter($event);
+                $this->next();
+                continue;
+            }
+
             for ($i = 0; $i < count($this->eventTasks); $i++) {
                 if ($this->eventTasks[$i]->match($event)) {
                     $this->eventTasks[$i]->run();
@@ -166,5 +173,20 @@ class Runtime
     private function next(): void
     {
         delay(0.01);
+    }
+
+    private function innerEventEcecuter(string $event): void
+    {
+        if ($event === InnerSysteEvents::CANSEL_EVENT) {
+            $this->stopAll();
+        }
+    }
+
+    private  function stopAll(): void
+    {
+        $this->eventProvider->cancel();
+        for ($i = 0; $i < count($this->periodiTasks); $i++) { 
+            $this->periodiTasks[$i]->cancel();
+        }
     }
 }
