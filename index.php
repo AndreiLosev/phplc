@@ -7,7 +7,7 @@ use Phplc\Core\Runtime;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-#[PeriodicTask(1, 0)]
+#[PeriodicTask(2, 0)]
 class TestTask implements Task
 {
     public function execute(): void
@@ -17,7 +17,7 @@ class TestTask implements Task
     }
 }
 
-#[PeriodicTask(0, 500)]
+#[PeriodicTask(1, 0)]
 class TestTask2 implements Task
 {
     public function execute(): void

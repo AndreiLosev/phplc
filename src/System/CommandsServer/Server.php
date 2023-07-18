@@ -51,11 +51,13 @@ class Server
 
     private function getCommandName(string $command): string
     {
-        return __NAMESPACE__ . '/Commands/' . $command;
+        return '\\' . __NAMESPACE__ . '\\Commands\\' . trim($command);
     }
 
-    private function vlidateInput(string|null $input, string &$errorMessage): ServerCommand|null
-    {
+    private function vlidateInput(
+        string|null $input,
+        string &$errorMessage
+    ): ServerCommand|null {
         if (is_null($input)) {
                 $errorMessage = "you need to send a command";
                 return null;
@@ -68,12 +70,12 @@ class Server
             return null;
         }
 
-        if (!is_string($inputObject->command)) {
+        if (!(isset($inputObject->command) && is_string($inputObject->command))) {
             $errorMessage = "'command' must be a string";
             return null;
         }
 
-        if (!($inputObject->params instanceof stdClass)) {
+        if (!(isset($inputObject->params) && $inputObject->params instanceof stdClass)) {
             $errorMessage = "'params' must be a object";
             return null;
         }

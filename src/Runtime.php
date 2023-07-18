@@ -67,11 +67,13 @@ class Runtime
             $this->cancellationToken->getCancellation(),
         );
 
-        Future\awaitAll([
+        [$err] = Future\awaitAll([
             $periodiTasksFuture,
             $eventTasksFuture,
             $commandServer,
         ]);
+
+        //TODO error to log
     }
 
     private function loadAllUsedClasses(): void
