@@ -3,6 +3,11 @@
 namespace Phplc\Core;
 
 use Amp\Future;
+use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
+use Phplc\Core\RuntimeFields\LoggingPropertyFieldsCollection;
+use Phplc\Core\RuntimeFields\LoggingPropertyFieldsCollectioncs;
+use Phplc\Core\RuntimeFields\PeriodicTaskFieldsCollection;
+use Phplc\Core\System\CommandsServer\Server;
 use Phplc\Core\System\EventProvider;
 use Phplc\Core\RuntimeFields\InnerSystemBuilder;
 use Phplc\Core\System\InnerSysteEvents;
@@ -10,41 +15,16 @@ use function Amp\async;
 use function Amp\delay;
 use Illuminate\Container\Container as IlluminateContainer;
 use Phplc\Core\Contracts\Task;
-use Phplc\Core\RuntimeFields\EventTaskField;
-use Phplc\Core\RuntimeFields\LoggingPropertyField;
-use Phplc\Core\RuntimeFields\PeriodicTaskField;
 use Phplc\Core\RuntimeFields\TaskFieldsFactory;
 use Phplc\Core\Contracts\Storage;
 
 class Runtime
 {
-    /** 
-     * @var PeriodicTaskField[] 
-     */
-    private array $periodiTasks;
-
-    /** 
-     * @var EventTaskField[] 
-     */
-    private array $eventTasks;
-
     private InnerSystemBuilder $innerSystemBuilder;
-
-    /** 
-     * @var array<string, LoggingPropertyField[]> 
-     */
-    private array $loggingFields;
 
     private TaskFieldsFactory $taskFieldsFactory;
 
     private Container $container;
-
-    private EventProvider $eventProvider;
-
-    /** 
-     * @var string[] 
-     */
-    private array $events;
 
     /** 
      * @param class-string<Task>[] $tasks
@@ -54,12 +34,7 @@ class Runtime
         IlluminateContainer $container,
     ) {
         $this->container = new Container($container);
-        $this->periodiTasks = [];
-        $this->eventTasks = [];
-        $this->loggingFields = [];
         $this->taskFieldsFactory = new TaskFieldsFactory();
-        $this->events = [];
-        $this->eventProvider = new EventProvider();
         $this->innerSystemBuilder = new InnerSystemBuilder();
     }
 
@@ -68,57 +43,29 @@ class Runtime
         $this->loadAllUsedClasses();
         $this->configurateStorageAsSinglton();
         $this->configurateTasksAsSinglton();
-        $this->innerSystemBuilder->build(
-            $this->container,
-            $this->eventProvider,
-        );
+        $this->innerSystemBuilder->build($this->container);
 
         $this->setTaskFields();
     }
 
     public function run(): void
     {
-        $periodiTasksFuture = async($this->runPeriodicTasks(...));
-        $eventTasksFuture = async($this->runEvemtTasks(...));
+        $periodiTasksFuture = async(
+            $this->container->make(PeriodicTaskFieldsCollection::class)->run(...)
+        );
+        $eventTasksFuture = async(
+            $this->container->make(EventProvider::class)->run(...),
+            $this->container->make(EventTaskFieldsCollection::class),
+            $this->innerEventExecutor(...)
+        );
+
+        $commandServer = async($this->container->make(Server::class)->lisnet(...));
 
         Future\awaitAll([
             $periodiTasksFuture,
             $eventTasksFuture,
+            $commandServer,
         ]);
-    }
-
-    private function runPeriodicTasks(): void
-    {
-        $fetures = [];
-        for ($i = 0; $i < count($this->periodiTasks); $i++) {
-            $fetures[] = async($this->periodiTasks[$i]->run(...));        
-        }
-
-       Future\awaitAll($fetures);
-    }
-
-    private function runEvemtTasks(): void
-    {
-        while ($event = $this->eventProvider->shift()) {
-            if ($this->eventProvider->isRepeat($event)) {
-                $this->next();
-                continue;
-            }
-
-            if ($this->eventProvider->isInnerSystemEvent($event)) {
-                $this->innerEventEcecuter($event);
-                $this->next();
-                continue;
-            }
-
-            for ($i = 0; $i < count($this->eventTasks); $i++) {
-                if ($this->eventTasks[$i]->match($event)) {
-                    $this->eventTasks[$i]->run();
-                }
-            }
-
-            $this->next();
-        }
     }
 
     private function loadAllUsedClasses(): void
@@ -149,25 +96,42 @@ class Runtime
 
     private function setTaskFields(): void
     {
+        $periodiTasks = [];
+        $eventTasks = [];
+        $loggingFields = [];
         foreach ($this->tasks as $taskName) {
             $taskInstans = $this->container->make($taskName);
             $buildResult = $this->taskFieldsFactory->build($taskInstans);
 
             if (!empty($buildResult->periodicTask)) {
-                $this->periodiTasks[] = $buildResult->periodicTask;
+                $periodiTasks[] = $buildResult->periodicTask;
             }
 
             if (!empty($buildResult->eventTask)) {
-                $this->eventTasks[] = $buildResult->eventTask;
+                $eventTasks[] = $buildResult->eventTask;
             }
 
             foreach ($buildResult->loggingPropertyFields as $key => $fild) {
                 if (count($fild) === 0) {
                     continue;
                 }
-                $this->loggingFields[$key] = $fild;
+                $loggingFields[$key] = $fild;
             }
         }
+        $this->container->singleton(
+            PeriodicTaskFieldsCollection::class,
+            fn() => new PeriodicTaskFieldsCollection($periodiTasks),
+        );
+        $this->container->singleton(
+            EventTaskFieldsCollection::class,
+            fn() => new EventTaskFieldsCollection($eventTasks),
+        );
+
+        $this->container->singleton(
+            LoggingPropertyFieldsCollection::class,
+            fn() => new LoggingPropertyFieldsCollection($loggingFields),
+        );
+
     }
 
     private function next(): void
@@ -175,7 +139,7 @@ class Runtime
         delay(0.01);
     }
 
-    private function innerEventEcecuter(string $event): void
+    private function innerEventExecutor(string $event): void
     {
         if ($event === InnerSysteEvents::CANSEL_EVENT) {
             $this->stopAll();
@@ -184,9 +148,7 @@ class Runtime
 
     private  function stopAll(): void
     {
-        $this->eventProvider->cancel();
-        for ($i = 0; $i < count($this->periodiTasks); $i++) { 
-            $this->periodiTasks[$i]->cancel();
-        }
+        $this->container->make(EventProvider::class)->cancel();
+        $this->container->make(PeriodicTaskFieldsCollection::class)->cancel();
     }
 }

@@ -29,6 +29,14 @@ class PeriodicTaskField
         $this->cancelToken = true;
     }
 
+    /** 
+     * @param class-string<Task> 
+     */
+    public function taskIs(string $taskName): bool
+    {
+        return $this->task::class === $taskName;
+    }
+
     public function run(): void
     {
         while (true) {

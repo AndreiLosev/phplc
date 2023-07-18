@@ -10,35 +10,31 @@ use Phplc\Core\System\EventProvider;
 
 class InnerSystemBuilder
 {
-    public function build(
-        Container $container,
-        EventProvider $eventProvider,
-    ): void
+    public function build(Container $container): void
     {
-        $this->buildEventProvider($container, $eventProvider);
+        $this->buildEventProvider($container);
+        $this->buildCommandServer($container);
     }
 
     private function buildEventProvider(
         Container $container,
-        EventProvider $eventProvider,
     ): void
     {
-        $container->singleton(
-            EventProvider::class,
-            fn() => $eventProvider,
-        );
+        $container->singleton(EventProvider::class);
 
         $container->singleton(
             EventDispatcher::class,
             fn() => new EventDispatcherDefault(
-                $eventProvider->dispatchEvent(...),
+                $container->make(EventProvider::class)->dispatchEvent(...),
             ),
         );
     }
 
-    private function buildCommandServer(
-        Container $container,
-    ): void {
-        $container->singleton(Server::class);
+    private function buildCommandServer(Container $container): void
+    {
+        $container->singleton(
+            Server::class,
+            fn() => new Server($container),
+        );
     }
 }

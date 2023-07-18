@@ -31,4 +31,12 @@ class EventTaskField
             //TODO;
         }
     }
+
+    /** 
+     * @param class-string<Task> 
+     */
+    public function taskIs(string $taskName): bool
+    {
+        return $this->task::class === $taskName;
+    }
 }

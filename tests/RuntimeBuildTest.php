@@ -4,10 +4,14 @@ namespace tests;
 
 use Illuminate\Container\Container;
 use PHPUnit\Framework\TestCase;
+use Phplc\Core\Container as PhplcContainer;
 use Phplc\Core\Runtime;
 use Phplc\Core\RuntimeFields\EventTaskField;
 use Phplc\Core\RuntimeFields\LoggingPropertyField;
+use Phplc\Core\RuntimeFields\LoggingPropertyFieldsCollection;
 use Phplc\Core\RuntimeFields\PeriodicTaskField;
+use Phplc\Core\RuntimeFields\PeriodicTaskFieldsCollection;
+use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
 use Phplc\Core\RuntimeFields\RetainPropertyField;
 use Phplc\Core\TestClsses\EvenTaskWithStores;
 use Phplc\Core\TestClsses\PeriodicTaskWIthRetainAndLoggingProeprty;
@@ -28,8 +32,12 @@ class RuntimeBuildTest extends TestCase
 
         $runtime->build();
 
-        $periodicTaskFields = $this->getPrivatPropert($runtime, 'periodiTasks');
-        $eventTaskFields = $this->getPrivatPropert($runtime, 'eventTasks');
+        /** @var PhplcContainer */
+        $appContainer = $this->getPrivatPropert($runtime, 'container');
+        $periodicTasksColection = $appContainer->make(PeriodicTaskFieldsCollection::class);
+        $eventTasksColection = $appContainer->make(EventTaskFieldsCollection::class);
+        $periodicTaskFields = $this->getPrivatPropert($periodicTasksColection, 'collection');
+        $eventTaskFields = $this->getPrivatPropert($eventTasksColection, 'collection');
 
         $this->assertTrue(is_array($periodicTaskFields) || count($periodicTaskFields) === 1);
         $this->assertTrue(is_array($eventTaskFields) || count($eventTaskFields) === 1);
@@ -46,7 +54,7 @@ class RuntimeBuildTest extends TestCase
         $storageRetainProerty = $this->getPrivatPropert($periodicTaskField, 'storageRetainProerty');
 
         $this->assertTrue($task instanceof SimplePerioditTask);
-        $this->assertTrue($preiodMilis === 1150);
+        $this->assertSame($preiodMilis, 1.150);
         $this->assertTrue(is_array($taskRetainPropertus) && count($taskRetainPropertus) === 0);
         $this->assertTrue(is_array($storageRetainProerty) && count($storageRetainProerty) === 0);
 
@@ -72,9 +80,14 @@ class RuntimeBuildTest extends TestCase
 
         $runtime->build();
 
-        $periodicTaskFields = $this->getPrivatPropert($runtime, 'periodiTasks');
-        $eventTaskFields = $this->getPrivatPropert($runtime, 'eventTasks');
-        $loggingFields = $this->getPrivatPropert($runtime, 'loggingFields');
+        /** @var PhplcContainer */
+        $appContainer = $this->getPrivatPropert($runtime, 'container');
+        $periodicTasksColection = $appContainer->make(PeriodicTaskFieldsCollection::class);
+        $eventTasksColection = $appContainer->make(EventTaskFieldsCollection::class);
+        $loggingFieldsCollection = $appContainer->make(LoggingPropertyFieldsCollection::class);
+        $periodicTaskFields = $this->getPrivatPropert($periodicTasksColection, 'collection');
+        $eventTaskFields = $this->getPrivatPropert($eventTasksColection, 'collection');
+        $loggingFields = $this->getPrivatPropert($loggingFieldsCollection, 'collection');
 
         $this->assertSame(count($periodicTaskFields), 2);
         $this->assertSame(count($eventTaskFields), 1);
@@ -133,9 +146,14 @@ class RuntimeBuildTest extends TestCase
 
         $runtime->build();
 
-        $periodicTaskFields = $this->getPrivatPropert($runtime, 'periodiTasks');
-        $eventTaskFields = $this->getPrivatPropert($runtime, 'eventTasks');
-        $loggingFields = $this->getPrivatPropert($runtime, 'loggingFields');
+        /** @var PhplcContainer */
+        $appContainer = $this->getPrivatPropert($runtime, 'container');
+        $periodicTasksColection = $appContainer->make(PeriodicTaskFieldsCollection::class);
+        $eventTasksColection = $appContainer->make(EventTaskFieldsCollection::class);
+        $loggingFieldsCollection = $appContainer->make(LoggingPropertyFieldsCollection::class);
+        $periodicTaskFields = $this->getPrivatPropert($periodicTasksColection, 'collection');
+        $eventTaskFields = $this->getPrivatPropert($eventTasksColection, 'collection');
+        $loggingFields = $this->getPrivatPropert($loggingFieldsCollection, 'collection');
 
         $this->assertSame(count($periodicTaskFields), 2);
         $this->assertSame(count($eventTaskFields), 2);
