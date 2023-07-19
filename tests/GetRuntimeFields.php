@@ -7,6 +7,8 @@ use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
 use Phplc\Core\RuntimeFields\LoggingPropertyFieldsCollection;
 use Phplc\Core\RuntimeFields\PeriodicTaskFieldsCollection;
 use Phplc\Core\Runtime;
+use function Amp\Socket\connect;
+use function Amp\delay;
 
 class GetRuntimeFields
 {
@@ -39,5 +41,19 @@ class GetRuntimeFields
         $proeprtyValue = $reflectionProperty->getValue($object);
         
         return $proeprtyValue;
+    }
+
+    public static function getCloseRuntimeClient(): void
+    {
+        delay(1);
+        $socket = connect("127.0.0.1:9191");
+        $data = [
+            'command' => "Cansel",
+            'params' => new \stdClass,
+        ];
+
+        $socket->write(json_encode($data));
+        $qwe = $socket->read();
+        $socket->close();
     }
 }

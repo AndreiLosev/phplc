@@ -65,6 +65,10 @@ class PeriodicTaskField
     {
         $now = Amp\now();
         $executionTime = $now - $this->startTime;
-        return $this->periodMilis - $executionTime;
+        $delay = $this->periodMilis - $executionTime;
+        if ($delay < 0) {
+            $delay = 0;
+        }
+        return $delay;
     }
 }

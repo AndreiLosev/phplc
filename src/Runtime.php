@@ -43,16 +43,21 @@ class Runtime
 
     public function build(): void
     {
+        $this->innerSystemBuilder->build($this->container);
         $this->loadAllUsedClasses();
         $this->configurateStorageAsSinglton();
         $this->configurateTasksAsSinglton();
-        $this->innerSystemBuilder->build($this->container);
 
         $this->setTaskFields();
     }
 
     public function run(): void
     {
+        $commandServer = async(
+            $this->container->make(Server::class)->lisnet(...),
+            $this->cancellationToken->getCancellation(),
+        );
+
         $periodiTasksFuture = async(
             $this->container->make(PeriodicTaskFieldsCollection::class)->run(...)
         );
@@ -60,11 +65,6 @@ class Runtime
             $this->container->make(EventProvider::class)->run(...),
             $this->container->make(EventTaskFieldsCollection::class),
             $this->innerEventExecutor(...)
-        );
-
-        $commandServer = async(
-            $this->container->make(Server::class)->lisnet(...),
-            $this->cancellationToken->getCancellation(),
         );
 
         [$err] = Future\awaitAll([
