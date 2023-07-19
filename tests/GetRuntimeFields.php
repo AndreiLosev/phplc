@@ -43,9 +43,9 @@ class GetRuntimeFields
         return $proeprtyValue;
     }
 
-    public static function getCloseRuntimeClient(): void
+    public static function getCloseRuntimeClient(float $delay = 0.1): void
     {
-        delay(1);
+        delay($delay);
         $socket = connect("127.0.0.1:9191");
         $data = [
             'command' => "Cansel",

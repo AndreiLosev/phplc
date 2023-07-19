@@ -19,4 +19,15 @@ class EventTaskFieldsCollection
             }
         }
     }
+
+    public function eventIsExists(string $event): bool
+    {
+        for ($i = 0; $i < count($this->collection); $i++) { 
+            if ($this->collection[$i]->match($event)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

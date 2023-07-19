@@ -6,11 +6,11 @@ use Phplc\Core\Attributes\PeriodicTask;
 use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\Contracts\Task;
 use Tests\TestClsses\SecondTestStorage;
-use function Amp\delay;
 
-#[PeriodicTask(0, 100)]
+#[PeriodicTask(0, 10)]
 class DispatchEventTask implements Task
 {
+    public int $counter = 0;
     public function __construct(
         public SecondTestStorage $storage,
         private EventDispatcher $dispatcher,
@@ -20,8 +20,9 @@ class DispatchEventTask implements Task
 
     public function execute(): void
     {
-        if ($this->storage->value > 0) {
+        if ($this->counter < 5) {
             $this->dispatcher->dispatch('decriment');
+            $this->counter++;
         }
     }
 }

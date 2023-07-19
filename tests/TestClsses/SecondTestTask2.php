@@ -6,7 +6,7 @@ use Phplc\Core\Attributes\PeriodicTask;
 use Phplc\Core\Contracts\Task;
 use Tests\TestClsses\SecondTestStorage;
 
-#[PeriodicTask]
+#[PeriodicTask(0, 10)]
 class SecondTestTask2 implements Task
 {
     public function __construct(

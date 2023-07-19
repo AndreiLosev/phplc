@@ -10,7 +10,9 @@ use Tests\TestClsses\SeconTestEventTask;
 use Tests\TestClsses\SecondTestTask1;
 use Tests\TestClsses\SecondTestTask2;
 use Tests\TestClsses\SecondTestStorage;
+use function Amp\Socket\connect;
 use function Amp\async;
+use function Amp\delay;
 
 class RuntimeRunTest extends TestCase
 {
@@ -56,5 +58,44 @@ class RuntimeRunTest extends TestCase
         $storage = $container->make(SecondTestStorage::class);
 
         $this->assertSame($storage->value, 0);
+    }
+
+    public function testCommandDispatchEvent(): void
+    {
+        $container = new Container();
+        $runtime = new Runtime([
+            SeconTestEventTask::class,
+        ], $container);
+
+        $runtime->build();
+
+        $future1 = async($runtime->run(...));
+
+        $future2 = async(function() {
+            delay(0);
+            $socket = connect("127.0.0.1:9191");
+            $data = [
+                'command' => "DispatchEvent",
+                'params' => ["event" => "decriment"],
+            ];
+
+            $socket->write(json_encode($data));
+            $qwe = $socket->read();
+            $socket = connect("127.0.0.1:9191");
+            $socket->write(json_encode($data));
+            $qwe = $socket->read();
+            $socket->close();
+
+        });
+
+        $client = async(GetRuntimeFields::getCloseRuntimeClient(...));
+
+        $future1->await();
+        $future2->await();
+        $client->await();
+
+        $storage = $container->make(SecondTestStorage::class);
+
+        $this->assertSame($storage->value, -2);
     }
 }
