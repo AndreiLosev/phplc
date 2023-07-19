@@ -1,17 +1,13 @@
 <?php
 
-namespace tests;
+namespace Tests;
 
 use Illuminate\Container\Container;
 use PHPUnit\Framework\TestCase;
-use Phplc\Core\Container as PhplcContainer;
 use Phplc\Core\Runtime;
 use Phplc\Core\RuntimeFields\EventTaskField;
 use Phplc\Core\RuntimeFields\LoggingPropertyField;
-use Phplc\Core\RuntimeFields\LoggingPropertyFieldsCollection;
 use Phplc\Core\RuntimeFields\PeriodicTaskField;
-use Phplc\Core\RuntimeFields\PeriodicTaskFieldsCollection;
-use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
 use Phplc\Core\RuntimeFields\RetainPropertyField;
 use Phplc\Core\TestClsses\EvenTaskWithStores;
 use Phplc\Core\TestClsses\PeriodicTaskWIthRetainAndLoggingProeprty;
@@ -19,6 +15,7 @@ use Phplc\Core\TestClsses\SimpleEventTask;
 use Phplc\Core\TestClsses\SimplePerioditTask;
 use Phplc\Core\TestClsses\StoreTest1;
 use Phplc\Core\TestClsses\StoreTest2;
+
 
 class RuntimeBuildTest extends TestCase
 {
@@ -32,12 +29,11 @@ class RuntimeBuildTest extends TestCase
 
         $runtime->build();
 
-        /** @var PhplcContainer */
-        $appContainer = $this->getPrivatPropert($runtime, 'container');
-        $periodicTasksColection = $appContainer->make(PeriodicTaskFieldsCollection::class);
-        $eventTasksColection = $appContainer->make(EventTaskFieldsCollection::class);
-        $periodicTaskFields = $this->getPrivatPropert($periodicTasksColection, 'collection');
-        $eventTaskFields = $this->getPrivatPropert($eventTasksColection, 'collection');
+        [
+            'periodicTaskFields' => $periodicTaskFields,
+            'eventTaskFields' => $eventTaskFields,
+        ] = GetRuntimeFields::get($runtime);
+
 
         $this->assertTrue(is_array($periodicTaskFields) || count($periodicTaskFields) === 1);
         $this->assertTrue(is_array($eventTaskFields) || count($eventTaskFields) === 1);
@@ -48,20 +44,20 @@ class RuntimeBuildTest extends TestCase
         $this->assertTrue($periodicTaskField instanceof PeriodicTaskField);
         $this->assertTrue($eventTaskField instanceof EventTaskField);
 
-        $task = $this->getPrivatPropert($periodicTaskField, 'task');
-        $preiodMilis = $this->getPrivatPropert($periodicTaskField, 'periodMilis');
-        $taskRetainPropertus = $this->getPrivatPropert($periodicTaskField, 'taskRetainPropertus');
-        $storageRetainProerty = $this->getPrivatPropert($periodicTaskField, 'storageRetainProerty');
+        $task = GetRuntimeFields::getPrivatPropert($periodicTaskField, 'task');
+        $preiodMilis = GetRuntimeFields::getPrivatPropert($periodicTaskField, 'periodMilis');
+        $taskRetainPropertus = GetRuntimeFields::getPrivatPropert($periodicTaskField, 'taskRetainPropertus');
+        $storageRetainProerty = GetRuntimeFields::getPrivatPropert($periodicTaskField, 'storageRetainProerty');
 
         $this->assertTrue($task instanceof SimplePerioditTask);
         $this->assertSame($preiodMilis, 1.150);
         $this->assertTrue(is_array($taskRetainPropertus) && count($taskRetainPropertus) === 0);
         $this->assertTrue(is_array($storageRetainProerty) && count($storageRetainProerty) === 0);
 
-        $task = $this->getPrivatPropert($eventTaskField, 'task');
-        $eventName = $this->getPrivatPropert($eventTaskField, 'eventName');
-        $taskRetainPropertus = $this->getPrivatPropert($eventTaskField, 'taskRetainPropertus');
-        $storageRetainProerty = $this->getPrivatPropert($eventTaskField, 'storageRetainProerty');
+        $task = GetRuntimeFields::getPrivatPropert($eventTaskField, 'task');
+        $eventName = GetRuntimeFields::getPrivatPropert($eventTaskField, 'eventName');
+        $taskRetainPropertus = GetRuntimeFields::getPrivatPropert($eventTaskField, 'taskRetainPropertus');
+        $storageRetainProerty = GetRuntimeFields::getPrivatPropert($eventTaskField, 'storageRetainProerty');
 
         $this->assertTrue($task instanceof SimpleEventTask);
         $this->assertTrue($eventName === 'testevent');
@@ -80,14 +76,11 @@ class RuntimeBuildTest extends TestCase
 
         $runtime->build();
 
-        /** @var PhplcContainer */
-        $appContainer = $this->getPrivatPropert($runtime, 'container');
-        $periodicTasksColection = $appContainer->make(PeriodicTaskFieldsCollection::class);
-        $eventTasksColection = $appContainer->make(EventTaskFieldsCollection::class);
-        $loggingFieldsCollection = $appContainer->make(LoggingPropertyFieldsCollection::class);
-        $periodicTaskFields = $this->getPrivatPropert($periodicTasksColection, 'collection');
-        $eventTaskFields = $this->getPrivatPropert($eventTasksColection, 'collection');
-        $loggingFields = $this->getPrivatPropert($loggingFieldsCollection, 'collection');
+        [
+            'periodicTaskFields' => $periodicTaskFields,
+            'eventTaskFields' => $eventTaskFields,
+            'loggingFields' => $loggingFields,
+        ] = GetRuntimeFields::get($runtime);
 
         $this->assertSame(count($periodicTaskFields), 2);
         $this->assertSame(count($eventTaskFields), 1);
@@ -106,8 +99,8 @@ class RuntimeBuildTest extends TestCase
         }
 
         foreach ($periodicTaskFields as $field) {
-            $task = $this->getPrivatPropert($field, 'task');
-            $taskRetainPropertus = $this->getPrivatPropert($field, 'taskRetainPropertus');
+            $task = GetRuntimeFields::getPrivatPropert($field, 'task');
+            $taskRetainPropertus = GetRuntimeFields::getPrivatPropert($field, 'taskRetainPropertus');
 
             $this->assertTrue(
                 $task instanceof SimplePerioditTask
@@ -146,14 +139,11 @@ class RuntimeBuildTest extends TestCase
 
         $runtime->build();
 
-        /** @var PhplcContainer */
-        $appContainer = $this->getPrivatPropert($runtime, 'container');
-        $periodicTasksColection = $appContainer->make(PeriodicTaskFieldsCollection::class);
-        $eventTasksColection = $appContainer->make(EventTaskFieldsCollection::class);
-        $loggingFieldsCollection = $appContainer->make(LoggingPropertyFieldsCollection::class);
-        $periodicTaskFields = $this->getPrivatPropert($periodicTasksColection, 'collection');
-        $eventTaskFields = $this->getPrivatPropert($eventTasksColection, 'collection');
-        $loggingFields = $this->getPrivatPropert($loggingFieldsCollection, 'collection');
+        [
+            'periodicTaskFields' => $periodicTaskFields,
+            'eventTaskFields' => $eventTaskFields,
+            'loggingFields' => $loggingFields,
+        ] = GetRuntimeFields::get($runtime);
 
         $this->assertSame(count($periodicTaskFields), 2);
         $this->assertSame(count($eventTaskFields), 2);
@@ -181,7 +171,7 @@ class RuntimeBuildTest extends TestCase
         }
 
         foreach ($eventTaskFields as $field) {
-            $task = $this->getPrivatPropert($field, 'task');
+            $task = GetRuntimeFields::getPrivatPropert($field, 'task');
 
             $this->assertTrue(
                 $task instanceof SimpleEventTask
@@ -189,7 +179,7 @@ class RuntimeBuildTest extends TestCase
             );
 
             if ($task instanceof EvenTaskWithStores) {
-                $storageRetainProerty = $this->getPrivatPropert($field, 'storageRetainProerty');
+                $storageRetainProerty = GetRuntimeFields::getPrivatPropert($field, 'storageRetainProerty');
 
                 $this->assertTrue(is_array($storageRetainProerty) && count($storageRetainProerty) === 2);
 
@@ -207,14 +197,5 @@ class RuntimeBuildTest extends TestCase
             }
         }
 
-    }
-
-    private function getPrivatPropert(mixed $object, string $proeprty): mixed
-    {
-        $reflectionClass = new \ReflectionClass($object);
-        $reflectionProperty = $reflectionClass->getProperty($proeprty);
-        $proeprtyValue = $reflectionProperty->getValue($object);
-        
-        return $proeprtyValue;
     }
 }

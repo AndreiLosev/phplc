@@ -5,6 +5,11 @@
             "Phplc\\Core\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
     "authors": [
         {
             "name": "Losev Andrei",
@@ -12,7 +17,7 @@
         }
     ],
     "scripts": {
-        "test": "vendor/bin/phpunit --testdox --colors --display-warnings tests"
+        "test": "vendor/bin/phpunit --colors"
     },
     "require": {
         "illuminate/container": "^10.14",
