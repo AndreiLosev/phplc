@@ -1,6 +1,6 @@
 <?php
 
-namespace Phplc\Core\TestClsses;
+namespace Tests\TestClsses;
 
 use Phplc\Core\Attributes\EventTask;
 use Phplc\Core\Contracts\Task;

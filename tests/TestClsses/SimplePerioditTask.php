@@ -1,6 +1,6 @@
 <?php
 
-namespace Phplc\Core\TestClsses;
+namespace Tests\TestClsses;
 
 use Phplc\Core\Attributes\PeriodicTask;
 use Phplc\Core\Contracts\Task;

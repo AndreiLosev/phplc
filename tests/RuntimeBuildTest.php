@@ -9,12 +9,12 @@ use Phplc\Core\RuntimeFields\EventTaskField;
 use Phplc\Core\RuntimeFields\LoggingPropertyField;
 use Phplc\Core\RuntimeFields\PeriodicTaskField;
 use Phplc\Core\RuntimeFields\RetainPropertyField;
-use Phplc\Core\TestClsses\EvenTaskWithStores;
-use Phplc\Core\TestClsses\PeriodicTaskWIthRetainAndLoggingProeprty;
-use Phplc\Core\TestClsses\SimpleEventTask;
-use Phplc\Core\TestClsses\SimplePerioditTask;
-use Phplc\Core\TestClsses\StoreTest1;
-use Phplc\Core\TestClsses\StoreTest2;
+use Tests\TestClsses\EvenTaskWithStores;
+use Tests\TestClsses\PeriodicTaskWIthRetainAndLoggingProeprty;
+use Tests\TestClsses\SimpleEventTask;
+use Tests\TestClsses\SimplePerioditTask;
+use Tests\TestClsses\StoreTest1;
+use Tests\TestClsses\StoreTest2;
 
 
 class RuntimeBuildTest extends TestCase
