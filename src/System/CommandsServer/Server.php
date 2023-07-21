@@ -2,6 +2,7 @@
 
 namespace Phplc\Core\System\CommandsServer;
 
+use Amp\ByteStream\StreamException;
 use Amp\Cancellation;
 use Amp\Socket;
 use Phplc\Core\Container;
@@ -12,7 +13,10 @@ use function Amp\async;
 class Server
 {
     public const END_TOKEN = "\n#!the end!#\n";
-    public const START_TOKEN = "waiting for the command\n";
+    public const END_SESSION_TOKEN = "#!end session!#";
+    public const START_MESSAGE = "waiting for the command\n";
+
+    private bool $isEndSession = false;
 
     public function __construct(
         private Container $container,
@@ -31,28 +35,41 @@ class Server
     private function handler(Socket\Socket $socket): void
     {
         while (true) {
-            $socket->write(self::START_TOKEN);
-            $input = $socket->read();
             try {
-                $command = $this->vlidateInput($input);
-                while (true) {
-                    $result = $command->execute();
-                    $socket->write($result->message . self::END_TOKEN);
+                $socket->write($this->getFirstMessage() . self::END_TOKEN);
+                $input = $socket->read();
+                $this->innerHandler($socket, $input);
+            } catch (StreamException $e) {
+                return;
+            }            
+        }
+    }
+    
+    private function innerHandler(Socket\Socket $socket, null|string $input): void
+    {
+        try {
+            $command = $this->vlidateInput($input);
+            while (true) {
+                $result = $command->execute();
+                $socket->write($result->message . self::END_TOKEN);
 
-                    if ($result->type->isEnd()) {
-                        break;
-                    }
-
-                    $response = $socket->read();
-                    $message = MessageFromResponse::from($response);
-
-                    if (!$message->answer->isRepeat()){
-                        break;
-                    }
+                if ($result->type->isFullEnd()) {
+                    $this->isEndSession = true;
                 }
-            } catch (ResponseException $e) {
-                $socket->write($e->getMessage() . self::END_TOKEN);
+
+                if (!$result->type->isEnd()) {
+                    break;
+                }
+
+                $response = $socket->read();
+                $message = MessageFromResponse::from($response);
+
+                if (!$message->answer->isRepeat()){
+                    break;
+                }
             }
+        } catch (ResponseException $e) {
+            $socket->write($e->getMessage() . self::END_TOKEN);
         }
     }
 
@@ -64,5 +81,10 @@ class Server
         $commandObject->setParams($command->params);
 
         return $commandObject;
+    }
+
+    private function getFirstMessage(): string
+    {
+        return $this->isEndSession ? self::END_SESSION_TOKEN : self::START_MESSAGE;
     }
 }

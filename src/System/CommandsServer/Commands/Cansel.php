@@ -20,8 +20,8 @@ class Cansel implements ServerCommand
         $this->eventProvider->dispatchEvent(InnerSysteEvents::CANSEL_EVENT);
 
         return new CommandResult(
-            CommandResultType::End,
-            'success',
+            CommandResultType::FullEnd,
+            'success, #end session#',
         );
     }
 

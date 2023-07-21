@@ -7,7 +7,8 @@ $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 function errorHeandler(Socket $socket): void
 {
     $err = socket_last_error($socket);
-    if ($err === 104) {
+    if ($err === 104 || $err === 32) {
+        socket_close($socket);
         exit('the end');
     }
     print_r([
@@ -20,20 +21,8 @@ if (!socket_connect($socket, '127.0.0.1', 9191)) {
     errorHeandler($socket);
 }
 
-while (true) {
-    $input = readline("inpit: ");
-
-    if (trim($input) === 'the end') {
-        socket_close($socket);
-        break;
-    }
-
-    $n = socket_write($socket, trim($input));
-
-    if (!$n) {
-        errorHeandler($socket);
-    }
-
+function readFromSocket(Socket $socket): string
+{
     $result = "";
     while (true) {
         $response = socket_read($socket, 1024, PHP_NORMAL_READ);
@@ -47,10 +36,39 @@ while (true) {
             break;
         }
 
+        if (is_int(strpos($response, "#!end session!#"))) {
+            socket_close($socket);
+            exit('the end');
+        }
+
         $result .= $response;
     }
 
-    print_r($result . PHP_EOL);
+    return $result;
+}
+
+while (true) {
+    
+    $input = readFromSocket($socket);
+
+    print_r($input);
+
+    $input = readline("inpit: ");
+
+    if (trim($input) === 'the end') {
+        socket_close($socket);
+        break;
+    }
+
+    $n = socket_write($socket, trim($input));
+
+    if (!$n) {
+        errorHeandler($socket);
+    }
+
+    $input = readFromSocket($socket);
+    
+    print_r($input . PHP_EOL);
 
     $message = ['message' => 'End'];
     $n = socket_write($socket, json_encode($message));

@@ -24,7 +24,11 @@ class MessageFromResponse
         $answer = CommandResultType::tryFrom($object->message);
 
         if (is_null($answer)) {
-            throw new ResponseException("message must be a 'End'|'Repeat'");
+            $values = implode('|', array_map(
+                fn(CommandResultType $v) => $v->value,
+                CommandResultType::cases(),
+            ));
+            throw new ResponseException("message must be a {$values}");
         }
 
 

@@ -6,6 +6,7 @@ enum CommandResultType: string
 {
     case Repeat = 'Repeat';
     case End = 'End';
+    case FullEnd = 'FullEnd';
 
     public function isRepeat(): bool
     {
@@ -15,5 +16,10 @@ enum CommandResultType: string
     public function isEnd(): bool
     {
         return $this === self::End;
+    }
+
+    public function isFullEnd(): bool
+    {
+        return $this === self::FullEnd;
     }
 }

@@ -4,6 +4,7 @@ namespace Phplc\Core\System\CommandsServer\Dto;
 
 use Phplc\Core\System\CommandsServer\ResponseException;
 use Phplc\Core\System\CommandsServer\ServerCommand;
+use Phplc\Core\System\CommandsServer\Commands\CommandsConstants;
 
 class CommandFromResponse
 {
@@ -44,6 +45,6 @@ class CommandFromResponse
 
     private static function getCommandName(string $command): string
     {
-        return '\\' . __NAMESPACE__ . '\\Commands\\' . trim($command);
+        return '\\' . CommandsConstants::getCommandsNamespace() . '\\' . trim($command);
     }
 }
