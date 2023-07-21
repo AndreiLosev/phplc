@@ -5,11 +5,15 @@ namespace Phplc\Core\System\CommandsServer;
 use Amp\Cancellation;
 use Amp\Socket;
 use Phplc\Core\Container;
-use stdClass;
+use Phplc\Core\System\CommandsServer\Dto\CommandFromResponse;
+use Phplc\Core\System\CommandsServer\Dto\MessageFromResponse;
 use function Amp\async;
 
 class Server
 {
+    public const END_TOKEN = "\n#!the end!#\n";
+    public const START_TOKEN = "waiting for the command\n";
+
     public function __construct(
         private Container $container,
         private string $socketAdr = '127.0.0.1:9191',
@@ -27,74 +31,38 @@ class Server
     private function handler(Socket\Socket $socket): void
     {
         while (true) {
+            $socket->write(self::START_TOKEN);
             $input = $socket->read();
-            $errorMessage = '';
-            
-            $command = $this->vlidateInput($input, $errorMessage);
+            try {
+                $command = $this->vlidateInput($input);
+                while (true) {
+                    $result = $command->execute();
+                    $socket->write($result->message . self::END_TOKEN);
 
-            if (is_null($command)) {
-                $socket->write($errorMessage);
-                break;
-            }
+                    if ($result->type->isEnd()) {
+                        break;
+                    }
 
-            $result = $command->execute();
+                    $response = $socket->read();
+                    $message = MessageFromResponse::from($response);
 
-            $socket->write($result->message);
-
-            if ($result->type->isEnd()) {
-                break;
+                    if (!$message->answer->isRepeat()){
+                        break;
+                    }
+                }
+            } catch (ResponseException $e) {
+                $socket->write($e->getMessage() . self::END_TOKEN);
             }
         }
-
-        $socket->close();
     }
 
-    private function getCommandName(string $command): string
-    {
-        return '\\' . __NAMESPACE__ . '\\Commands\\' . trim($command);
-    }
+    private function vlidateInput(string|null $input): ServerCommand {
 
-    private function vlidateInput(
-        string|null $input,
-        string &$errorMessage
-    ): ServerCommand|null {
-        if (is_null($input)) {
-                $errorMessage = "you need to send a command";
-                return null;
-        };
+        $command = CommandFromResponse::from($input);
 
-        /** @var stdClass|null */
-        $inputObject = json_decode($input);
-        if (is_null($inputObject)) {
-            $errorMessage = "'{$input}' is invalid json";
-            return null;
-        }
-
-        if (!(isset($inputObject->command) && is_string($inputObject->command))) {
-            $errorMessage = "'command' must be a string";
-            return null;
-        }
-
-        if (!(isset($inputObject->params) && $inputObject->params instanceof stdClass)) {
-            $errorMessage = "'params' must be a object";
-            return null;
-        }
-
-        $command = $this->getCommandName($inputObject->command);
-
-        if (!(
-            class_exists($command)
-            && in_array(ServerCommand::class, class_implements($command))
-        )) {
-            $errorMessage = "'{$inputObject->command}' is unknown command";
-            return null;
-        }
-
-        /** @var class-string<ServerCommand>  $command*/
-        $commandObject = $this->container->make($command);
-        $commandObject->setParams($inputObject->params);
+        $commandObject = $this->container->make($command->command);
+        $commandObject->setParams($command->params);
 
         return $commandObject;
     }
-
 }

@@ -2,10 +2,10 @@
 
 namespace Phplc\Core\System\CommandsServer;
 
-enum CommandResultType
+enum CommandResultType: string
 {
-    case Repeat;
-    case End;
+    case Repeat = 'Repeat';
+    case End = 'End';
 
     public function isRepeat(): bool
     {
