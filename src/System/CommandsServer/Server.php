@@ -36,7 +36,7 @@ class Server
     {
         while (true) {
             try {
-                $socket->write($this->getFirstMessage() . self::END_TOKEN);
+                $this->writeToSocket($socket, $this->getFirstMessage());
                 $input = $socket->read();
                 $this->innerHandler($socket, $input);
             } catch (StreamException $e) {
@@ -51,7 +51,7 @@ class Server
             $command = $this->vlidateInput($input);
             while (true) {
                 $result = $command->execute();
-                $socket->write($result->message . self::END_TOKEN);
+                $this->writeToSocket($socket, $result->message);
 
                 if ($result->type->isFullEnd()) {
                     $this->isEndSession = true;
@@ -69,8 +69,13 @@ class Server
                 }
             }
         } catch (ResponseException $e) {
-            $socket->write($e->getMessage() . self::END_TOKEN);
+            $this->writeToSocket($socket, $e->getMessage());
         }
+    }
+
+    private function writeToSocket(Socket\Socket $socket, string $message): void
+    {
+        $socket->write($message . self::END_TOKEN);
     }
 
     private function vlidateInput(string|null $input): ServerCommand {

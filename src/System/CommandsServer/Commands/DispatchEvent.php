@@ -2,7 +2,6 @@
 
 namespace Phplc\Core\System\CommandsServer\Commands;
 
-use Phplc\Core\Container;
 use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
 use Phplc\Core\System\CommandsServer\CommandResult;
 use Phplc\Core\System\CommandsServer\CommandResultType;
