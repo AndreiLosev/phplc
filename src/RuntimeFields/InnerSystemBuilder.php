@@ -2,6 +2,7 @@
 
 namespace Phplc\Core\RuntimeFields;
 
+use Phplc\Core\Config;
 use Phplc\Core\Container;
 use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\System\CommandsServer\Server;
@@ -12,6 +13,7 @@ class InnerSystemBuilder
 {
     public function build(Container $container): void
     {
+        $this->buildConfig($container);
         $this->buildEventProvider($container);
         $this->buildCommandServer($container);
     }
@@ -32,9 +34,18 @@ class InnerSystemBuilder
 
     private function buildCommandServer(Container $container): void
     {
+        $config = $container->make(Config::class);
         $container->singleton(
             Server::class,
-            fn() => new Server($container),
+            fn() => new Server($container, $config->commandSeverAddr),
         );
+    }
+
+    private function buildConfig(Container $container): void
+    {
+        if (!$container->isSinglton(Config::class)) {
+            $container->singleton(Config::class);
+        }
+        $container->make(Config::class)->build();
     }
 }

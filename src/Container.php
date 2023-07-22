@@ -44,4 +44,13 @@ class Container
     ): void {
         $this->container->bind($abstract, $concrete = null, $shared = false);
     }
+
+    /** 
+     * @template T 
+     * @param class-string<T> $abstract 
+     */
+    public function isSinglton(string $abstract): bool
+    {
+        return $this->container->isShared($abstract);
+    }
 }

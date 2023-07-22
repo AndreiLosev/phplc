@@ -33,7 +33,7 @@ class EventTaskField
     }
 
     /** 
-     * @param class-string<Task> 
+     * @param class-string<Task> $taskName
      */
     public function taskIs(string $taskName): bool
     {

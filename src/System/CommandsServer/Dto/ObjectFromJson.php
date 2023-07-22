@@ -11,7 +11,7 @@ trait ObjectFromJson
         if (is_null($input)) {
             throw new ResponseException("you need to send a not an empty message");
         };
-        /** @var stdClass|null */
+        /** @var \stdClass|null */
         $inputObject = json_decode(trim($input));
         if (is_null($inputObject)) {
             throw new ResponseException("'{$input}' is invalid json");
