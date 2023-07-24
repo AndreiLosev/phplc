@@ -2,19 +2,24 @@
 
 namespace Phplc\Core\RuntimeFields;
 
+use Phplc\Core\Contracts\Storage;
 use Phplc\Core\Contracts\Task;
 
 class EventTaskField
 {
     /** 
      * @param RetainPropertyField[] $taskRetainPropertus 
-     * @param array<string, RetainPropertyField[]> $storageRetainProerty
+     * @param ChangeTrackingField[] $taskChangeTrackingPropertus
+     * @param array<class-string<Storage>, RetainPropertyField[]> $storageRetainProerty
+     * @param array<class-string<Storage>, ChangeTrackingField[]> $storageChangeTrackingProerty
      */
     public function __construct(
-        protected Task $task,
-        protected string $eventName, 
-        protected array $taskRetainPropertus,
-        protected array $storageRetainProerty,
+        private Task $task,
+        private string $eventName, 
+        private array $taskRetainPropertus,
+        private array $storageRetainProerty,
+        private array $taskChangeTrackingPropertus,
+        private array $storageChangeTrackingProerty,
     ) {}
 
     public function match(string $eventName): bool

@@ -3,22 +3,27 @@
 namespace Phplc\Core\RuntimeFields;
 
 use Amp;
+use Phplc\Core\Contracts\Storage;
 use Phplc\Core\Contracts\Task;
 
 class PeriodicTaskField
 {
-    protected float $startTime;
-    protected bool $cancelToken;
+    private float $startTime;
+    private bool $cancelToken;
 
     /** 
      * @param RetainPropertyField[] $taskRetainPropertus 
-     * @param array<class-string, RetainPropertyField[]> $storageRetainProerty
+     * @param ChangeTrackingField[] $taskChangeTrackingPropertus
+     * @param array<class-string<Storage>, RetainPropertyField[]> $storageRetainProerty
+     * @param array<class-string<Storage>, ChangeTrackingField[]> $storageChangeTrackingProerty
      */
     public function __construct(
-        protected Task $task,
-        protected float $periodMilis,
-        protected array $taskRetainPropertus,
-        protected array $storageRetainProerty,
+        private Task $task,
+        private float $periodMilis,
+        private array $taskRetainPropertus,
+        private array $storageRetainProerty,
+        private array $taskChangeTrackingPropertus,
+        private array $storageChangeTrackingProerty,
     ) {
         $this->startTime = 0;
         $this->cancelToken = false;

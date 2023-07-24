@@ -2,6 +2,7 @@
 
 namespace Phplc\Core\RuntimeFields;
 
+use Phplc\Core\Attributes\ChangeTracking;
 use Phplc\Core\Attributes\EventTask;
 use Phplc\Core\Attributes\Logging;
 use Phplc\Core\Attributes\PeriodicTask;
@@ -86,6 +87,8 @@ class TaskFieldsFactory
             $period,
             $taskPropertyFields->retainProeprty,
             $searchResult->retainPropertyFields,
+            $taskPropertyFields->changeTrackingProperty,
+            $searchResult->changeTrackingPropertyFields,
         );
 
         return new PeriodicTaskBuildResult(
@@ -116,6 +119,8 @@ class TaskFieldsFactory
             $attributInstans->eventName,
             $taskPropertyFields->retainProeprty,
             $searchResult->retainPropertyFields,
+            $taskPropertyFields->changeTrackingProperty,
+            $searchResult->changeTrackingPropertyFields,
         );
 
         return new EventTaskBuildResult(
@@ -165,8 +170,10 @@ class TaskFieldsFactory
         } 
 
         $storagPropertyRetainFields = [];
+        $storagPropertyChangeTrackingFields = [];
         foreach ($storagPropertyFields as $key => $field) {
             $storagPropertyRetainFields[$key] = $field->retainProeprty;
+            $storagPropertyChangeTrackingFields[$key] = $field->changeTrackingProperty;
         }
 
         $loggingPropertyFields = [];
@@ -177,6 +184,7 @@ class TaskFieldsFactory
         return new SearchStoraePorpertyResult(
             $storagPropertyRetainFields,
             $loggingPropertyFields,
+            $storagPropertyChangeTrackingFields,
         );
     }
 
@@ -190,6 +198,7 @@ class TaskFieldsFactory
 
         $retainProperty = [];
         $loggingProperty = [];
+        $changeTrackingProperty = [];
 
         foreach ($reflectionPropertys as $property) {
             $propertyAttributs = $property->getAttributes();
@@ -215,12 +224,24 @@ class TaskFieldsFactory
                         );
                     }
                 }
+
+                if ($propertyAttribut->getName() === ChangeTracking::class) {
+                    $propertyAttributInstans = $propertyAttribut->newInstance();
+                    if ($propertyAttributInstans instanceof ChangeTracking) {
+                        $changeTrackingProperty[] = $this->changeTrackingPropretyBuild(
+                            $property,
+                            $propertyAttributInstans,
+                            $class,
+                        );
+                    }
+                }
             }
         }
 
         return new SearchPropertyAttribursResult(
             $retainProperty,
             $loggingProperty,
+            $changeTrackingProperty,
         );
     }
 
@@ -291,6 +312,39 @@ class TaskFieldsFactory
         }
 
         return new LoggingPropertyField($propertyName, $getter);
+    }
+
+    /** 
+     * @param  ReflectionClass<Task|Storage> $class 
+     */
+    private function changeTrackingPropretyBuild(
+        ReflectionProperty $property,
+        ChangeTracking $attributInstans,
+        ReflectionClass $class,
+    ): ChangeTrackingField {
+        $propertyName = $property->getName();
+        $event = $attributInstans->event;
+        $getter = null;
+         if (!$property->isPublic()) {
+            $getter = $attributInstans->getter;
+            if (is_null($getter)) {
+                $mess = "ChangeTracking \"{$propertyName}\" must be public or provide public getter methods";
+                throw new \RuntimeException($mess);
+            }
+
+            if (!method_exists($class->getName(), $getter)) {
+                $mess = "ChangeTracking \"{$propertyName}\" must be public or provide public getter methods";
+                throw new \RuntimeException($mess);
+            }
+
+            $refletionMetod = new ReflectionMethod($class->getName(), $getter);
+            if (!$refletionMetod->isPublic()) {
+                $mess = "ChangeTracking \"{$propertyName}\" must be public or provide public getter methods";
+                throw new \RuntimeException($mess);
+            }
+        }
+
+        return new ChangeTrackingField($propertyName, $event, $getter);
     }
 
     /** 
