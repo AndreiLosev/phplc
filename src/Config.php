@@ -30,6 +30,7 @@ class Config
     public array $logging = [
         'dbPath' => '%root%/default.db',
         'table' => 'logging_property',
+        'period_s' => "60",
     ];
 
     /** 

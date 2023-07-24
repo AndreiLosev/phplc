@@ -1,40 +1,33 @@
 <?php
 
+use Phplc\Core\Contracts\JsonObject;
+
 require_once __DIR__ . '/vendor/autoload.php';
 
-$db = new \SQLite3('test.db');
-$db->enableExceptions();
+class Test1 implements JsonObject {
 
-// $query = "CREATE TABLE IF NOT EXISTS TestTable (
-//     name TEXT PRIMARY KEY,
-//     type TEXT NOT NULL,
-//     value TEXT NOT NULL
-// );";
+    public int $var = 4;
 
-// $db->exec($query);
+    public static function fromJson(string $json): static
+    {
+        $arr = json_decode($json, true);
+        $instants = new static();
+        $instants->var = $arr['var'];
 
-// $update = "
-// INSERT INTO TestTable (name, type, value)
-// VALUES ('v221', 'bool', 999) 
-// ;";
+        return $instants;
+    }
 
-$update = "UPDATE TestTable SET value = '1590' WHERE name = 'v221';";
-$stmt = $db->prepare($update);
-
-$sql = $stmt->getSQL();
-
-print_r($sql);
-// $stmt->bindValue(":t", 'integer', SQLITE3_TEXT);
-
-$res = $stmt->execute();
-
-
-var_dump($db->changes());
-
-// $select = "SELECT * from TestTable";
-// $res = $db->query($select);
-
-
-while ($re = $res->fetchArray()) {
-    print_r($re);
+    public function jsonSerialize(): mixed
+    {
+        return $this;
+    }
 }
+
+$x = new Test1;
+
+var_dump($x);
+$json = json_encode($x);
+var_dump($json);
+$className = Test1::class;
+$x1 = $className::fromJson($json);
+var_dump($x1);
