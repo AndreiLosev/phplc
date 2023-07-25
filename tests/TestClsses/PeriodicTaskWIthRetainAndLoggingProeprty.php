@@ -2,13 +2,14 @@
 
 namespace Tests\TestClsses;
 
+use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\Attributes\ChangeTracking;
 use Phplc\Core\Attributes\Logging;
 use Phplc\Core\Attributes\PeriodicTask;
 use Phplc\Core\Attributes\Retain;
 use Phplc\Core\Contracts\Task;
 
-#[PeriodicTask]
+#[PeriodicTask(0, 10)]
 class PeriodicTaskWIthRetainAndLoggingProeprty implements Task
 {
     #[ChangeTracking('test-event')]
@@ -19,6 +20,7 @@ class PeriodicTaskWIthRetainAndLoggingProeprty implements Task
     private  string $q2 = '2';
 
     public function __construct(
+        private EventDispatcher $dispatcher,
         #[Retain]
         #[Logging]
         public bool $q3 = false,
@@ -44,6 +46,8 @@ class PeriodicTaskWIthRetainAndLoggingProeprty implements Task
 
     public  function  execute(): void
     {
-        print_r('OK' . PHP_EOL);
+        $this->q4 = $this->q4 + 0.1;
+        $this->q3 = !$this->q3;
+        $this->dispatcher->dispatch('3-test');
     }
 }

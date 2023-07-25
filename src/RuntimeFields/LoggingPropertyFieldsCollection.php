@@ -2,6 +2,7 @@
 
 namespace Phplc\Core\RuntimeFields;
 
+use Amp\Cancellation;
 use Phplc\Core\Config;
 use Phplc\Core\Container;
 use Phplc\Core\Contracts\LoggingProperty;
@@ -28,10 +29,11 @@ class LoggingPropertyFieldsCollection
         $this->loggingService = $continer->make(LoggingProperty::class);
     }
 
-    public function run(): void
+    public function run(Cancellation $cancellation): void
     {
         while (true) {
             delay($this->period);
+            $cancellation->throwIfRequested();
             $prepared = [];
             foreach ($this->collection as $class => $property) {
                 $shortName = Helpers::shortName($class);

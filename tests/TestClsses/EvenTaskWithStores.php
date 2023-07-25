@@ -15,6 +15,12 @@ class EvenTaskWithStores implements Task
 
     public function execute(): void
     {
-        print_r('Test 1 2');
+        $this->storeTest1->setX2(
+            $this->storeTest1->getX2() + 0.55,
+        );
+
+        $this->storeTest2->setX4(
+            $this->storeTest2->getX4() + 1.05,
+        );
     }
 }

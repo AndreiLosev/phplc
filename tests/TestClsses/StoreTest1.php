@@ -22,4 +22,9 @@ class StoreTest1 implements Storage
     {
         return $this->x2;
     } 
+
+    public function setX2(float $x): void
+    {
+        $this->x2 = $x;
+    }
 }
