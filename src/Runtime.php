@@ -58,6 +58,11 @@ class Runtime
             $this->cancellationToken->getCancellation(),
         );
 
+        $logging = async(
+            $this->container->make(LoggingPropertyFieldsCollection::class)->run(...),
+            $this->cancellationToken->getCancellation(),
+        );
+
         $periodiTasksFuture = async(
             $this->container->make(PeriodicTaskFieldsCollection::class)->run(...)
         );
@@ -71,6 +76,7 @@ class Runtime
             $periodiTasksFuture,
             $eventTasksFuture,
             $commandServer,
+            $logging,
         ]);
 
         //TODO error to log
@@ -137,7 +143,10 @@ class Runtime
 
         $this->container->singleton(
             LoggingPropertyFieldsCollection::class,
-            fn() => new LoggingPropertyFieldsCollection($loggingFields),
+            fn() => new LoggingPropertyFieldsCollection(
+                $loggingFields,
+                $this->container,
+            ),
         );
 
     }

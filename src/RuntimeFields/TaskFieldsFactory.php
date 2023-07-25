@@ -291,6 +291,13 @@ class TaskFieldsFactory
         ReflectionClass $class,
     ): LoggingPropertyField {
         $propertyName = $property->getName();
+        $validTypes = ['bool', 'int', 'float', 'string'];
+        if (!$this->checkType($property->getType(), $validTypes)) {
+            $validTypesStr = implode(', ', $validTypes);
+            $mess = "logging \"{$propertyName}\" type must be set valid types {$validTypesStr}";
+            throw new \RuntimeException($mess);
+        }
+
         $getter = null;
          if (!$property->isPublic()) {
             $getter = $attributInstans->getter;
@@ -383,5 +390,25 @@ class TaskFieldsFactory
         }
 
         return $attributInstans;
+    }
+
+    /** 
+     * @param string[] $validTypes 
+     */
+    private function checkType(
+        null|\ReflectionType $type,
+        array $validTypes,
+    ): bool
+    {
+        if (is_null($type)) {
+            return false;
+        }
+
+        if ($type instanceof \ReflectionNamedType) {
+            $typeName = $type->getName();
+            return in_array($typeName, $validTypes);
+        }
+
+        return false;
     }
 }

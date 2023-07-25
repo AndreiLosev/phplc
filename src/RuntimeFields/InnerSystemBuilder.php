@@ -5,7 +5,11 @@ namespace Phplc\Core\RuntimeFields;
 use Phplc\Core\Config;
 use Phplc\Core\Container;
 use Phplc\Core\Contracts\EventDispatcher;
+use Phplc\Core\Contracts\LoggingProperty;
+use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\System\CommandsServer\Server;
+use Phplc\Core\System\DefaultLoggingPropertyService;
+use Phplc\Core\System\DefaultRetainPropertyService;
 use Phplc\Core\System\EventDispatcherDefault;
 use Phplc\Core\System\EventProvider;
 
@@ -13,7 +17,18 @@ class InnerSystemBuilder
 {
     public function build(Container $container): void
     {
-        $this->buildConfig($container);
+        $this->buildIfNotExists($container, Config::class, Config::class);
+        $this->buildIfNotExists(
+            $container,
+            LoggingProperty::class,
+            DefaultLoggingPropertyService::class
+        );
+        $this->buildIfNotExists(
+            $container,
+            RetainProperty::class,
+            DefaultRetainPropertyService::class,
+        );
+
         $this->buildEventProvider($container);
         $this->buildCommandServer($container);
     }
@@ -41,11 +56,22 @@ class InnerSystemBuilder
         );
     }
 
-    private function buildConfig(Container $container): void
-    {
-        if (!$container->isSinglton(Config::class)) {
-            $container->singleton(Config::class);
+    /** 
+     * @param interface-string $abstract
+     * @param class-string $concret 
+     */
+    private function buildIfNotExists(
+        Container $container,
+        string $abstract,
+        string $concret,
+    ): void {
+        if (!$container->isSinglton($abstract)) {
+            $container->singleton($abstract, $concret);
         }
-        $container->make(Config::class)->build();
+
+        $instants = $container->make($abstract);
+        if (method_exists($instants, 'build')) {
+            $instants->build();
+        }
     }
 }

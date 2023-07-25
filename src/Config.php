@@ -30,8 +30,9 @@ class Config
     public array $logging = [
         'dbPath' => '%root%/default.db',
         'table' => 'logging_property',
-        'period_s' => "60",
     ];
+
+    public float $loggingPeriod = 0.01;
 
     /** 
      * @var array<string, string> 

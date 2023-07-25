@@ -66,21 +66,21 @@ class RetainPropertyDefaultTest extends TestCase
             $rpd->createIfNotExists($key, $value);
         }
 
-        $rpd->update('intVal', $filds['intVal']);
+        $rpd->update('Name::intVal', $filds['intVal']);
         $this->assertSame($rpd->changes(), 0);
 
         $rpd->update('accArrF', $filds['accArrF']);
         $this->assertSame($rpd->changes(), 0);
 
-        $rpd->update('flotVal', 1.234);
+        $rpd->update('Name::flotVal', 1.234);
         $this->assertSame($rpd->changes(), 1);
 
-        $rpd->update('boolV', true);
+        $rpd->update('Name::boolV', true);
         $this->assertSame($rpd->changes(), 1);
 
-        $result = $rpd->select(['boolV', 'flotVal']);
+        $result = $rpd->select(['Name::boolV', 'Name::flotVal']);
 
-        $this->assertSame([$result['boolV'], $result['flotVal']], [true, 1.234]);
+        $this->assertSame([$result['Name::boolV'], $result['Name::flotVal']], [true, 1.234]);
 
         $rpd->close();
     }
@@ -91,10 +91,10 @@ class RetainPropertyDefaultTest extends TestCase
     private function getFields(): array
     {
         $filds = [
-            'boolV' => false,
-            'intVal' => 1569,
-            'flotVal' => 95.15923,
-            'arrVasl' => [1, 2, 3, 5 , 6]
+            'Name::boolV' => false,
+            'Name::intVal' => 1569,
+            "Name::flotVal" => 95.15923,
+            'Name::arrVasl' => [1, 2, 3, 5 , 6]
         ];
 
         $accArrF = $filds;
