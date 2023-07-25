@@ -2,6 +2,7 @@
 
 namespace Tests\TestClsses;
 
+use Phplc\Core\Attributes\ChangeTracking;
 use Phplc\Core\Attributes\Logging;
 use Phplc\Core\Attributes\PeriodicTask;
 use Phplc\Core\Attributes\Retain;
@@ -10,6 +11,7 @@ use Phplc\Core\Contracts\Task;
 #[PeriodicTask]
 class PeriodicTaskWIthRetainAndLoggingProeprty implements Task
 {
+    #[ChangeTracking('test-event')]
     #[Retain]
     public  int $q1 = 1;
 
@@ -21,6 +23,7 @@ class PeriodicTaskWIthRetainAndLoggingProeprty implements Task
         #[Logging]
         public bool $q3 = false,
         #[Logging('getQ4')]
+        #[ChangeTracking('tevent', 'getQ4')]
         protected float $q4 = 0.1,
     ) {}
 

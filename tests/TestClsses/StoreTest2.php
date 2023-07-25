@@ -2,6 +2,7 @@
 
 namespace Tests\TestClsses;
 
+use Phplc\Core\Attributes\ChangeTracking;
 use Phplc\Core\Attributes\Logging;
 use Phplc\Core\Attributes\Retain;
 use Phplc\Core\Contracts\Storage;
@@ -11,6 +12,8 @@ class StoreTest2 implements Storage
     public function __construct(
         #[Retain('setX3', 'getX3')]
         private int $x3 = 53,
+
+        #[ChangeTracking('event-name', 'getX4')]
         #[Logging ('getX4')]
         private float $x4 = 1.55,
     ) {}

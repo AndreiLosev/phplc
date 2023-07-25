@@ -9,6 +9,6 @@ class ChangeTracking
 {
     public function __construct(
         public string $event,
-        public null|string $getter,
+        public null|string $getter = null,
     ) {}
 }

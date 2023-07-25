@@ -5,6 +5,7 @@ namespace Tests;
 use Illuminate\Container\Container;
 use PHPUnit\Framework\TestCase;
 use Phplc\Core\Runtime;
+use Phplc\Core\RuntimeFields\ChangeTrackingField;
 use Phplc\Core\RuntimeFields\EventTaskField;
 use Phplc\Core\RuntimeFields\LoggingPropertyField;
 use Phplc\Core\RuntimeFields\PeriodicTaskField;
@@ -101,6 +102,7 @@ class RuntimeBuildTest extends TestCase
         foreach ($periodicTaskFields as $field) {
             $task = GetRuntimeFields::getPrivatPropert($field, 'task');
             $taskRetainPropertus = GetRuntimeFields::getPrivatPropert($field, 'taskRetainPropertus');
+            $taskChangeTrackingPropertus = GetRuntimeFields::getPrivatPropert($field, 'taskChangeTrackingPropertus');
 
             $this->assertTrue(
                 $task instanceof SimplePerioditTask
@@ -108,7 +110,8 @@ class RuntimeBuildTest extends TestCase
             );
 
             if ($task instanceof PeriodicTaskWIthRetainAndLoggingProeprty) {
-                $this->assertTrue(is_array($taskRetainPropertus) && count($taskRetainPropertus) === 3);
+                $this->assertSame(count($taskRetainPropertus), 3);
+                $this->assertSame(count($taskChangeTrackingPropertus), 2);
 
                 foreach ($taskRetainPropertus as $retain) {
                     $this->assertTrue($retain instanceof RetainPropertyField);
@@ -118,6 +121,19 @@ class RuntimeBuildTest extends TestCase
                     } else if ($retain->name === 'q2') {
                         $this->assertSame($retain->getter, 'getQ2');
                         $this->assertSame($retain->setter, 'setQ2');
+                    } else {
+                        $this->assertTrue(false);
+                    }
+                }
+
+                foreach ($taskChangeTrackingPropertus as $changeTracking) {
+                    $this->assertTrue($changeTracking instanceof ChangeTrackingField);
+                    if ($changeTracking->name === 'q1') {
+                        $this->assertTrue(is_null($changeTracking->getter));
+                        $this->assertSame($changeTracking->event, 'test-event');
+                    } else if ($changeTracking->name === 'q4') {
+                        $this->assertSame($changeTracking->getter, 'getQ4');
+                        $this->assertSame($changeTracking->event, 'tevent');
                     } else {
                         $this->assertTrue(false);
                     }
@@ -180,8 +196,10 @@ class RuntimeBuildTest extends TestCase
 
             if ($task instanceof EvenTaskWithStores) {
                 $storageRetainProerty = GetRuntimeFields::getPrivatPropert($field, 'storageRetainProerty');
+                $storageChangeTrackingProerty = GetRuntimeFields::getPrivatPropert($field, 'storageChangeTrackingProerty');
 
-                $this->assertTrue(is_array($storageRetainProerty) && count($storageRetainProerty) === 2);
+                $this->assertSame(count($storageRetainProerty), 2);
+                $this->assertSame(count($storageChangeTrackingProerty), 2);
 
                 $retainStoreProperty = $storageRetainProerty[StoreTest1::class];
 
@@ -189,11 +207,23 @@ class RuntimeBuildTest extends TestCase
                 $this->assertNull($retainStoreProperty[0]->setter);
                 $this->assertNull($retainStoreProperty[0]->getter);
 
+                $changeTrackingStoreProperty = $storageChangeTrackingProerty[StoreTest1::class];
+
+                $this->assertSame($changeTrackingStoreProperty[0]->name, 'x1');
+                $this->assertSame($changeTrackingStoreProperty[0]->event, 'evet-storage');
+                $this->assertNull($changeTrackingStoreProperty[0]->getter);
+
                 $retainStoreProperty = $storageRetainProerty[StoreTest2::class];
 
                 $this->assertSame($retainStoreProperty[0]->name, 'x3');
                 $this->assertSame($retainStoreProperty[0]->setter, 'setX3');
                 $this->assertSame($retainStoreProperty[0]->getter, 'getX3');
+
+                $changeTrackingStoreProperty = $storageChangeTrackingProerty[StoreTest2::class];
+
+                $this->assertSame($changeTrackingStoreProperty[0]->name, 'x4');
+                $this->assertSame($changeTrackingStoreProperty[0]->event, 'event-name');
+                $this->assertSame($changeTrackingStoreProperty[0]->getter, 'getX4');
             }
         }
 
