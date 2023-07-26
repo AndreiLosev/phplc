@@ -8,7 +8,9 @@ use Phplc\Core\Attributes\Logging;
 use Phplc\Core\Attributes\PeriodicTask;
 use Phplc\Core\Attributes\Retain;
 use Phplc\Core\RuntimeFields\Dto\EventTaskBuildResult;
+use Phplc\Core\RuntimeFields\Dto\EventTaskFieldDto;
 use Phplc\Core\RuntimeFields\Dto\PeriodicTaskBuildResult;
+use Phplc\Core\RuntimeFields\Dto\PeriodicTaskFieldDto;
 use Phplc\Core\RuntimeFields\Dto\SearchPropertyAttribursResult;
 use Phplc\Core\RuntimeFields\Dto\TaskFieldsFactoryBuildReuslt;
 use Phplc\Core\Contracts\Storage;
@@ -82,7 +84,7 @@ class TaskFieldsFactory
 
         $period = $attributInstans->seconds + $attributInstans->milliseconds / 1000;
 
-        $periodicTasField = new PeriodicTaskField(
+        $periodicTasField = new PeriodicTaskFieldDto(
             $taskInstans,
             $period,
             $taskPropertyFields->retainProeprty,
@@ -114,7 +116,7 @@ class TaskFieldsFactory
             $reflectionClass->getName() => $taskPropertyFields->loggingProperty,
         ];
 
-        $periodicTasField = new EventTaskField(
+        $periodicTasField = new EventTaskFieldDto(
             $taskInstans,
             $attributInstans->eventName,
             $taskPropertyFields->retainProeprty,

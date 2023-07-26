@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Tests\GetRuntimeFields;
 use Illuminate\Container\Container;
 use PHPUnit\Framework\TestCase;
 use Phplc\Core\Runtime;
@@ -47,8 +48,9 @@ class RuntimeBuildTest extends TestCase
 
         $task = GetRuntimeFields::getPrivatPropert($periodicTaskField, 'task');
         $preiodMilis = GetRuntimeFields::getPrivatPropert($periodicTaskField, 'periodMilis');
-        $taskRetainPropertus = GetRuntimeFields::getPrivatPropert($periodicTaskField, 'taskRetainPropertus');
-        $storageRetainProerty = GetRuntimeFields::getPrivatPropert($periodicTaskField, 'storageRetainProerty');
+        $retainHeandler = GetRuntimeFields::getPrivatPropert($periodicTaskField, 'retainHeandler');
+        $taskRetainPropertus = GetRuntimeFields::getPrivatPropert($retainHeandler, 'taskRetainPropertus');
+        $storageRetainProerty = GetRuntimeFields::getPrivatPropert($retainHeandler, 'storageRetainProerty');
 
         $this->assertTrue($task instanceof SimplePerioditTask);
         $this->assertSame($preiodMilis, 1.150);
@@ -57,8 +59,9 @@ class RuntimeBuildTest extends TestCase
 
         $task = GetRuntimeFields::getPrivatPropert($eventTaskField, 'task');
         $eventName = GetRuntimeFields::getPrivatPropert($eventTaskField, 'eventName');
-        $taskRetainPropertus = GetRuntimeFields::getPrivatPropert($eventTaskField, 'taskRetainPropertus');
-        $storageRetainProerty = GetRuntimeFields::getPrivatPropert($eventTaskField, 'storageRetainProerty');
+        $retainHeandler = GetRuntimeFields::getPrivatPropert($eventTaskField, 'retainHeandler');
+        $taskRetainPropertus = GetRuntimeFields::getPrivatPropert($retainHeandler, 'taskRetainPropertus');
+        $storageRetainProerty = GetRuntimeFields::getPrivatPropert($retainHeandler, 'storageRetainProerty');
 
         $this->assertTrue($task instanceof SimpleEventTask);
         $this->assertTrue($eventName === 'testevent');
@@ -101,7 +104,8 @@ class RuntimeBuildTest extends TestCase
 
         foreach ($periodicTaskFields as $field) {
             $task = GetRuntimeFields::getPrivatPropert($field, 'task');
-            $taskRetainPropertus = GetRuntimeFields::getPrivatPropert($field, 'taskRetainPropertus');
+            $retainHeandler = GetRuntimeFields::getPrivatPropert($field, 'retainHeandler');
+            $taskRetainPropertus = GetRuntimeFields::getPrivatPropert($retainHeandler, 'taskRetainPropertus');
             $taskChangeTrackingPropertus = GetRuntimeFields::getPrivatPropert($field, 'taskChangeTrackingPropertus');
 
             $this->assertTrue(
@@ -195,7 +199,8 @@ class RuntimeBuildTest extends TestCase
             );
 
             if ($task instanceof EvenTaskWithStores) {
-                $storageRetainProerty = GetRuntimeFields::getPrivatPropert($field, 'storageRetainProerty');
+                $retainHeandler = GetRuntimeFields::getPrivatPropert($field, 'retainHeandler');
+                $storageRetainProerty = GetRuntimeFields::getPrivatPropert($retainHeandler, 'storageRetainProerty');
                 $storageChangeTrackingProerty = GetRuntimeFields::getPrivatPropert($field, 'storageChangeTrackingProerty');
 
                 $this->assertSame(count($storageRetainProerty), 2);

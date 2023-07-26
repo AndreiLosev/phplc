@@ -2,7 +2,7 @@
 
 namespace Phplc\Core\RuntimeFields;
 
-class ChangeTrackingField
+class ChangeTrackingField extends PropertyAttribut
 {
     public function __construct(
         public string $name,

@@ -52,7 +52,11 @@ class EventProvider
                 continue;
             }
 
-            $collection->run($event);
+            $eventIsHandled = $collection->run($event);
+
+            if (!$eventIsHandled) {
+                // TODO Errr Log
+            }
 
             $this->next();
         }

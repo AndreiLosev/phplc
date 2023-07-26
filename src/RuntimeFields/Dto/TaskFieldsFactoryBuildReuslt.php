@@ -4,9 +4,9 @@ namespace Phplc\Core\RuntimeFields\Dto;
 
 use Phplc\Core\Contracts\Storage;
 use Phplc\Core\Contracts\Task;
-use Phplc\Core\RuntimeFields\EventTaskField;
+use Phplc\Core\RuntimeFields\Dto\EventTaskFieldDto;
 use Phplc\Core\RuntimeFields\LoggingPropertyField;
-use Phplc\Core\RuntimeFields\PeriodicTaskField;
+use Phplc\Core\RuntimeFields\Dto\PeriodicTaskFieldDto;
 
 class TaskFieldsFactoryBuildReuslt
 {
@@ -17,8 +17,8 @@ class TaskFieldsFactoryBuildReuslt
      *  > $loggingPropertyFields
      */
     public function __construct(
-        public null|PeriodicTaskField $periodicTask = null,
-        public null|EventTaskField $eventTask = null,
+        public null|PeriodicTaskFieldDto $periodicTask = null,
+        public null|EventTaskFieldDto $eventTask = null,
         public array $loggingPropertyFields = [],
     ) {}
 }

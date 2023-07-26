@@ -134,18 +134,35 @@ class Runtime
         }
         $this->container->singleton(
             PeriodicTaskFieldsCollection::class,
-            fn() => new PeriodicTaskFieldsCollection($periodiTasks),
+            function() use($periodiTasks) {
+                $collection = new PeriodicTaskFieldsCollection(
+                    $this->container,
+                    $periodiTasks,
+                );
+                $collection->build();
+
+                return $collection;
+            },
         );
+
         $this->container->singleton(
             EventTaskFieldsCollection::class,
-            fn() => new EventTaskFieldsCollection($eventTasks),
+            function() use($eventTasks) {
+                $collection = new EventTaskFieldsCollection(
+                    $this->container,
+                    $eventTasks,
+                );
+                $collection->build();
+
+                return $collection;
+            },
         );
 
         $this->container->singleton(
             LoggingPropertyFieldsCollection::class,
             fn() => new LoggingPropertyFieldsCollection(
-                $loggingFields,
                 $this->container,
+                $loggingFields,
             ),
         );
 

@@ -9,8 +9,6 @@ use Phplc\Core\Contracts\LoggingProperty;
 use Phplc\Core\Contracts\Storage;
 use Phplc\Core\Contracts\Task;
 use function Amp\delay;
-use Phplc\Core\Helpers;
-
 
 class LoggingPropertyFieldsCollection
 {
@@ -22,8 +20,8 @@ class LoggingPropertyFieldsCollection
      * @param array<class-string<Task|Storage>, LoggingPropertyField[]> $collection
      */
     public function __construct(
-        private array $collection,
         private Container $continer,
+        private array $collection,
     ) {
         $this->period = $continer->make(Config::class)->loggingPeriod;
         $this->loggingService = $continer->make(LoggingProperty::class);
@@ -36,37 +34,13 @@ class LoggingPropertyFieldsCollection
             $cancellation->throwIfRequested();
             $prepared = [];
             foreach ($this->collection as $class => $property) {
-                $shortName = Helpers::shortName($class);
                 $instants = $this->continer->make($class);
                 for ($i = 0; $i < count($property); $i++) {
-                    [$key, $value] = $this->getKeyValue(
-                        $shortName,
-                        $property[$i],
-                        $instants
-                    );  
+                    [$key, $value] = $property[$i]->getKeyValue($instants);  
                     $prepared[$key] = $value;
                 }
             }
             $this->loggingService->setLog($prepared);
         }
-    }
-
-    /** 
-     * @return array{string, scalar} 
-     */
-    private function getKeyValue(
-        string $shortName,
-        LoggingPropertyField $prop,
-        Task|Storage $class,
-    ): array
-    {
-        $key = "{$shortName}::{$prop->name}";
-        /** @var scalar */
-        $value = match ($prop->getter) {
-            null => $class->{$prop->name},
-            default => $class->{$prop->getter}(),
-        };
-
-        return [$key, $value];
     }
 }

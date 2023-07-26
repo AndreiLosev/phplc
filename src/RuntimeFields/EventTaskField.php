@@ -2,25 +2,38 @@
 
 namespace Phplc\Core\RuntimeFields;
 
+use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\Contracts\Storage;
 use Phplc\Core\Contracts\Task;
 
 class EventTaskField
 {
+    private RetainPropertyHeandler $retainHeandler;
+
     /** 
      * @param RetainPropertyField[] $taskRetainPropertus 
      * @param ChangeTrackingField[] $taskChangeTrackingPropertus
      * @param array<class-string<Storage>, RetainPropertyField[]> $storageRetainProerty
      * @param array<class-string<Storage>, ChangeTrackingField[]> $storageChangeTrackingProerty
+     * @param \Closure(class-string<Storage>): Storage $makeStorage
      */
     public function __construct(
         private Task $task,
         private string $eventName, 
-        private array $taskRetainPropertus,
-        private array $storageRetainProerty,
+        array $taskRetainPropertus,
+        array $storageRetainProerty,
         private array $taskChangeTrackingPropertus,
         private array $storageChangeTrackingProerty,
-    ) {}
+        RetainProperty $retainService,
+        \Closure $makeStorage,
+    ) {
+        $this->retainHeandler = new RetainPropertyHeandler(
+            $taskRetainPropertus,
+            $storageRetainProerty,
+            $retainService,
+            $makeStorage,
+        );
+    }
 
     public function match(string $eventName): bool
     {
@@ -31,10 +44,15 @@ class EventTaskField
     {
         try {
             $this->task->execute();
-            // TODO retain property
+            $this->retainHeandler->saveProprty($this->task);
         } catch (\Throwable $th) {
             //TODO;
         }
+    }
+
+    public function init(): void
+    {
+        $this->retainHeandler->init($this->task);
     }
 
     /** 

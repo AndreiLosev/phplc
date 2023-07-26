@@ -2,7 +2,7 @@
 
 namespace Phplc\Core\RuntimeFields;
 
-class LoggingPropertyField
+class LoggingPropertyField extends PropertyAttribut
 {
     public function __construct(
         public string $name,
