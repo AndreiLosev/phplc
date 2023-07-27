@@ -22,5 +22,8 @@ class EvenTaskWithStores implements Task
         $this->storeTest2->setX4(
             $this->storeTest2->getX4() + 1.05,
         );
+
+        $this->storeTest1->x1++;
+        $this->storeTest2->setX3($this->storeTest1->x1 * $this->storeTest1->x1);
     }
 }

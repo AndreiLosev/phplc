@@ -127,7 +127,6 @@ class RuntimeRunTest extends TestCase
 
         $client = async(GetRuntimeFields::getCloseRuntimeClient(...));
 
-
         $runtimeFuture->await();
         $client->await();
 
@@ -272,6 +271,39 @@ class RuntimeRunTest extends TestCase
             $data['StoreTest2::x3'],
             $storeTest2->getX3(),
         );
+
+        $runtimeFuture = async($runtime->run(...));
+
+        $client = async(GetRuntimeFields::getCloseRuntimeClient(...));
+
+        $runtimeFuture->await();
+        $client->await();
+
+        $db = $db->query("SELECT * from 'retain_property'");
+
+        while ($row = $db->fetchArray(SQLITE3_NUM)) {
+            [$name, $type, $value] = $row;
+
+            if ($name === 'PeriodicTaskWIthRetainAndLoggingProeprty::q1') {
+                $this->assertSame((string)$periodic->q1, $value);
+            }
+
+            if ($name === 'PeriodicTaskWIthRetainAndLoggingProeprty::q2') {
+                $this->assertSame($periodic->getQ2(), $value);
+            }
+
+            if ($name === 'PeriodicTaskWIthRetainAndLoggingProeprty::q3') {
+                $this->assertSame((string)(int)$periodic->q3, $value);
+            }
+
+            if ($name === 'StoreTest1::x1') {
+                $this->assertSame((string)$storeTest1->x1, $value);
+            }
+
+            if ($name === 'StoreTest2::x3') {
+                $this->assertSame((string)$storeTest2->getX3(), $value);
+            }
+        }
 
     }
 }

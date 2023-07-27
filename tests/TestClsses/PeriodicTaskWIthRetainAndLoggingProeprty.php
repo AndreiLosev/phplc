@@ -48,6 +48,9 @@ class PeriodicTaskWIthRetainAndLoggingProeprty implements Task
     {
         $this->q4 = $this->q4 + 0.1;
         $this->q3 = !$this->q3;
+        $this->q1++;
+        $this->q2 .= '!';
         $this->dispatcher->dispatch('3-test');
+
     }
 }
