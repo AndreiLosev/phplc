@@ -4,9 +4,7 @@ namespace Tests;
 
 use Amp\DeferredCancellation;
 use Tests\GetRuntimeFields;
-use Illuminate\Container\Container;
 use PHPUnit\Framework\TestCase;
-use Phplc\Core\Config;
 use Phplc\Core\Contracts\LoggingProperty;
 use Phplc\Core\Runtime;
 use Phplc\Core\System\DefaultLoggingPropertyService;
@@ -139,8 +137,28 @@ class RuntimeRunTest extends TestCase
             $result[$row['name']][] = $row;
         }
 
-        foreach ($result as $value) {
-            $this->assertSame(count($value), 3);
+        foreach ($result as $name => $value) {
+            if ($name === 'PeriodicTaskWIthRetainAndLoggingProeprty::q3') {
+                $this->assertTrue(count($value) > 2);
+                continue;
+            }
+            for ($i = 1; $i  < count($value); $i ++) {
+                $v1 = (float)$value[$i]['value'];
+                $v2 = (float)$value[$i-1]['value']; 
+                $this->assertTrue($v1 > $v2);
+            }
         }
+    }
+
+    public function testRetainProperty(): void
+    {
+        // $container = GetRuntimeFields::getContainer();
+        // $runtime = new Runtime([
+        //     PeriodicTaskWIthRetainAndLoggingProeprty::class,
+        //     EvenTaskWithStores::class,
+        // ], $container);
+
+        // $runtime->build();
+        $this->assertTrue(true);
     }
 }

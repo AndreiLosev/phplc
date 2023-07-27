@@ -5,6 +5,7 @@ namespace Phplc\Core\RuntimeFields;
 use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\Contracts\Storage;
 use Phplc\Core\Contracts\Task;
+use function Amp\Future\awaitAll;
 use function Amp\async;
 
 class RetainPropertyHeandler
@@ -29,9 +30,11 @@ class RetainPropertyHeandler
 
     public function saveProprty(Task $task): void
     {
+        $futurs = [];
+
         for ($i = 0; $i  < count($this->taskRetainPropertus); $i ++) { 
             [$key, $value] = $this->taskRetainPropertus[$i]->getKeyValue($task);
-            $this->retainService->update($key, $value);
+            $futurs[] = async($this->retainService->update(...), $key, $value);
         }
 
         $makeStorage = $this->makeStorage;
@@ -39,8 +42,14 @@ class RetainPropertyHeandler
             $storageInstans = $makeStorage($storageName);
             for ($i = 0; $i < count($property); $i ++) { 
                 [$key, $value] = $property[$i]->getKeyValue($storageInstans);
-                $this->retainService->update($key, $value);
+                $futurs[] = async($this->retainService->update(...), $key, $value);
             }
+        }
+
+        [$errors] = awaitAll($futurs);
+
+        foreach ($errors as $e) {
+            throw $e;
         }
     }
 
@@ -53,7 +62,7 @@ class RetainPropertyHeandler
 
         for ($i = 0; $i  < count($this->taskRetainPropertus); $i ++) { 
             [$key, $value] = $this->taskRetainPropertus[$i]->getKeyValue($task);
-            $this->retainService->createIfNotExists($key, $value);
+            async($this->retainService->createIfNotExists(...), $key, $value)->await();
             $names[] = $key;
         }
 
@@ -62,7 +71,7 @@ class RetainPropertyHeandler
             $storageInstans = $makeStorage($storageName);
             for ($i = 0; $i < count($property); $i ++) { 
                 [$key, $value] = $property[$i]->getKeyValue($storageInstans);
-                $this->retainService->createIfNotExists($key, $value);
+                async($this->retainService->createIfNotExists(...), $key, $value)->await();
                 $names[] = $key;
             }
         }
@@ -79,7 +88,7 @@ class RetainPropertyHeandler
             return;
         }
 
-        $retainProperty = $this->retainService->select($names);
+        $retainProperty = async($this->retainService->select(...), $names)->await();
 
         for ($i = 0; $i  < count($this->taskRetainPropertus); $i ++) { 
             [$key] = $this->taskRetainPropertus[$i]->getKeyValue($task);
