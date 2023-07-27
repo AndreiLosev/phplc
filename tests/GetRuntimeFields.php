@@ -2,11 +2,14 @@
 
 namespace Tests;
 
+use Illuminate\Container\Container as IlluminateContainer;
+use Phplc\Core\Config;
 use Phplc\Core\Container;
 use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
 use Phplc\Core\RuntimeFields\LoggingPropertyFieldsCollection;
 use Phplc\Core\RuntimeFields\PeriodicTaskFieldsCollection;
 use Phplc\Core\Runtime;
+use Tests\TestClsses\ConfigForTests;
 use function Amp\Socket\connect;
 use function Amp\delay;
 
@@ -55,5 +58,14 @@ class GetRuntimeFields
         $socket->write(json_encode($data));
         $qwe = $socket->read();
         $socket->close();
+    }
+
+    public static function getContainer(): IlluminateContainer
+    {
+        $config = new ConfigForTests();
+        $container = new IlluminateContainer();
+        $container->singleton(Config::class, fn() => $config);
+
+        return $container;
     }
 }

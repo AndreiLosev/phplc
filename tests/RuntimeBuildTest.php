@@ -3,7 +3,6 @@
 namespace Tests;
 
 use Tests\GetRuntimeFields;
-use Illuminate\Container\Container;
 use PHPUnit\Framework\TestCase;
 use Phplc\Core\Runtime;
 use Phplc\Core\RuntimeFields\ChangeTrackingField;
@@ -23,7 +22,7 @@ class RuntimeBuildTest extends TestCase
 {
     public function testSimplePeridocTaskAndEventTask(): void
     {
-        $container = new Container();
+        $container = GetRuntimeFields::getContainer();
         $runtime = new Runtime([
             SimplePerioditTask::class,
             SimpleEventTask::class,
@@ -71,7 +70,7 @@ class RuntimeBuildTest extends TestCase
 
     public function testRetainAndLoggingTaskProperty(): void
     {
-        $container = new Container();
+        $container = GetRuntimeFields::getContainer();
         $runtime = new Runtime([
             SimplePerioditTask::class,
             SimpleEventTask::class,
@@ -149,7 +148,7 @@ class RuntimeBuildTest extends TestCase
 
     public function testRetainAndLoggingInStorage(): void
     {
-        $container = new Container();
+        $container = GetRuntimeFields::getContainer();
         $runtime = new Runtime([
             SimplePerioditTask::class,
             SimpleEventTask::class,
@@ -231,6 +230,5 @@ class RuntimeBuildTest extends TestCase
                 $this->assertSame($changeTrackingStoreProperty[0]->getter, 'getX4');
             }
         }
-
     }
 }

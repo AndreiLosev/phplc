@@ -75,6 +75,10 @@ class RetainPropertyHeandler
      */
     private function initRetaintPropertyFromPropertyStorage(array $names, Task $task): void
     {
+        if (count($names) === 0) {
+            return;
+        }
+
         $retainProperty = $this->retainService->select($names);
 
         for ($i = 0; $i  < count($this->taskRetainPropertus); $i ++) { 

@@ -32,7 +32,7 @@ class Config
         'table' => 'logging_property',
     ];
 
-    public float $loggingPeriod = 0.01;
+    public float $loggingPeriod = 300;
 
     /** 
      * @var array<string, string> 

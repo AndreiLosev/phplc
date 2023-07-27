@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Amp\DeferredCancellation;
+use Tests\GetRuntimeFields;
 use Illuminate\Container\Container;
 use PHPUnit\Framework\TestCase;
 use Phplc\Core\Config;
@@ -16,7 +17,6 @@ use Tests\TestClsses\SeconTestEventTask;
 use Tests\TestClsses\SecondTestTask1;
 use Tests\TestClsses\SecondTestTask2;
 use Tests\TestClsses\SecondTestStorage;
-use function Amp\Future\awaitAll;
 use function Amp\Socket\connect;
 use function Amp\async;
 use function Amp\delay;
@@ -25,7 +25,7 @@ class RuntimeRunTest extends TestCase
 {
     public function testDataExchangeViaStorage(): void
     {
-        $container = new Container();
+        $container = GetRuntimeFields::getContainer();
         $runtime = new Runtime([
             SecondTestTask1::class,
             SecondTestTask2::class,
@@ -47,7 +47,7 @@ class RuntimeRunTest extends TestCase
 
     public function testEventTaskRun(): void
     {
-        $container = new Container();
+        $container = GetRuntimeFields::getContainer();
         $runtime = new Runtime([
             DispatchEventTask::class,
             SeconTestEventTask::class,
@@ -69,7 +69,7 @@ class RuntimeRunTest extends TestCase
 
     public function testCommandDispatchEvent(): void
     {
-        $container = new Container();
+        $container = GetRuntimeFields::getContainer();
         $runtime = new Runtime([
             SeconTestEventTask::class,
         ], $container);
@@ -108,11 +108,7 @@ class RuntimeRunTest extends TestCase
 
     public function testLoggingProperty(): void
     {
-        $config = new Config;
-        $config->loggingPeriod = 0.04;
-        $config->logging['dbPath'] = ':memory:';
-        $container = new Container();
-        $container->singleton(Config::class, fn() => $config);
+        $container = GetRuntimeFields::getContainer();
         $runtime = new Runtime([
             PeriodicTaskWIthRetainAndLoggingProeprty::class,
             EvenTaskWithStores::class,
@@ -129,15 +125,6 @@ class RuntimeRunTest extends TestCase
     
         $runtimeFuture->await();
         $client->await();
-
-        // $cancelFuture = async(function() use ($cancel) {
-        //     delay(0.1);
-        //     $cancel->cancel();
-        // });
-
-        // try {
-        //     awaitAll([$runtimeFuture, $cancelFuture], $cancel->getCancellation());
-        // } catch (\Throwable $th) {}
 
         /** 
          * @var DefaultLoggingPropertyService 
