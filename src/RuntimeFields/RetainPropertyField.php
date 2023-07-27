@@ -21,7 +21,7 @@ class RetainPropertyField extends PropertyAttribut
     {
         match ($this->setter) {
             null => $class->{$this->name} = $value,
-            default => $class->{$this->getter}($value),
+            default => $class->{$this->setter}($value),
         };
     }
 }

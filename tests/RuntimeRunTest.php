@@ -3,11 +3,16 @@
 namespace Tests;
 
 use Amp\DeferredCancellation;
+use Phplc\Core\Contracts\RetainProperty;
+use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
+use Phplc\Core\RuntimeFields\PeriodicTaskFieldsCollection;
+use Phplc\Core\System\DefaultRetainPropertyService;
 use Tests\GetRuntimeFields;
 use PHPUnit\Framework\TestCase;
 use Phplc\Core\Contracts\LoggingProperty;
 use Phplc\Core\Runtime;
 use Phplc\Core\System\DefaultLoggingPropertyService;
+use Tests\TestClsses\ConfigForTests;
 use Tests\TestClsses\DispatchEventTask;
 use Tests\TestClsses\EvenTaskWithStores;
 use Tests\TestClsses\PeriodicTaskWIthRetainAndLoggingProeprty;
@@ -15,6 +20,8 @@ use Tests\TestClsses\SeconTestEventTask;
 use Tests\TestClsses\SecondTestTask1;
 use Tests\TestClsses\SecondTestTask2;
 use Tests\TestClsses\SecondTestStorage;
+use Tests\TestClsses\StoreTest1;
+use Tests\TestClsses\StoreTest2;
 use function Amp\Socket\connect;
 use function Amp\async;
 use function Amp\delay;
@@ -120,7 +127,7 @@ class RuntimeRunTest extends TestCase
 
         $client = async(GetRuntimeFields::getCloseRuntimeClient(...));
 
-    
+
         $runtimeFuture->await();
         $client->await();
 
@@ -150,15 +157,121 @@ class RuntimeRunTest extends TestCase
         }
     }
 
-    public function testRetainProperty(): void
+    public function testRetainPropertyCreate(): void
     {
-        // $container = GetRuntimeFields::getContainer();
-        // $runtime = new Runtime([
-        //     PeriodicTaskWIthRetainAndLoggingProeprty::class,
-        //     EvenTaskWithStores::class,
-        // ], $container);
+        $container = GetRuntimeFields::getContainer();
+        $runtime = new Runtime([
+            PeriodicTaskWIthRetainAndLoggingProeprty::class,
+            EvenTaskWithStores::class,
+        ], $container);
 
-        // $runtime->build();
-        $this->assertTrue(true);
+        $runtime->build();
+
+        $container->make(PeriodicTaskFieldsCollection::class);
+
+        /** @var DefaultRetainPropertyService */
+        $db = $container->make(RetainProperty::class);
+
+        $dbR = $db->query("SELECT * from 'retain_property'");
+
+        while ($row = $dbR->fetchArray(SQLITE3_NUM)) {
+            [$name, $type, $value] = $row;
+            
+            if ($name === 'PeriodicTaskWIthRetainAndLoggingProeprty::q1') {
+                $this->assertSame('integer', $type);
+                $this->assertSame('1', $value);
+            }
+
+            if ($name === 'PeriodicTaskWIthRetainAndLoggingProeprty::q2') {
+                $this->assertSame('string', $type);
+                $this->assertSame('2', $value);
+            }
+
+            if ($name === 'PeriodicTaskWIthRetainAndLoggingProeprty::q3') {
+                $this->assertSame('boolean', $type);
+                $this->assertSame('0', $value);
+            }
+
+            if ($name === 'StoreTest1::x1') {
+                $this->assertSame('integer', $type);
+                $this->assertSame('5', $value);
+            }
+
+            if ($name === 'StoreTest2::x3') {
+                $this->assertSame('integer', $type);
+                $this->assertSame('53', $value);
+            }
+        }
+    }
+
+    public function testRetainPropertyInit(): void
+    {
+        $config = new ConfigForTests();
+        $db = new DefaultRetainPropertyService($config);
+
+        $table = $config->retain['table'];
+        $query = "CREATE TABLE IF NOT EXISTS {$table} (
+            name TEXT PRIMARY KEY,
+            type TEXT,
+            value TEXT
+            );";
+
+        $db->exec($query);
+
+        $data = [
+            'PeriodicTaskWIthRetainAndLoggingProeprty::q1' => 33,
+            'PeriodicTaskWIthRetainAndLoggingProeprty::q2' => 'hello world',
+            'PeriodicTaskWIthRetainAndLoggingProeprty::q3' => true,
+            'StoreTest1::x1' => 696,
+            'StoreTest2::x3' => 777,
+        ];
+
+        foreach ($data as $name => $value) {
+            $db->createIfNotExists($name, $value);
+        }
+
+        $container = GetRuntimeFields::getContainer();
+
+        $container->singleton(RetainProperty::class, fn() => $db);
+
+        $runtime = new Runtime([
+            PeriodicTaskWIthRetainAndLoggingProeprty::class,
+            EvenTaskWithStores::class,
+        ], $container);
+
+        $runtime->build();
+
+        $container->make(PeriodicTaskFieldsCollection::class);
+        $container->make(EventTaskFieldsCollection::class);
+
+        $periodic = $container->make(PeriodicTaskWIthRetainAndLoggingProeprty::class);
+        $storeTest1 = $container->make(StoreTest1::class);
+        $storeTest2 = $container->make(StoreTest2::class);
+
+        $this->assertSame(
+            $data['PeriodicTaskWIthRetainAndLoggingProeprty::q1'],
+            $periodic->q1
+        );
+
+        $this->assertSame(
+            $data['PeriodicTaskWIthRetainAndLoggingProeprty::q2'],
+            $periodic->getQ2(),
+        );
+
+        $this->assertSame(
+            $data['PeriodicTaskWIthRetainAndLoggingProeprty::q3'],
+            $periodic->q3,
+        );
+
+        $this->assertSame(
+            $data['StoreTest1::x1'],
+            $storeTest1->x1,
+        );
+
+        $this->assertSame(
+            $data['StoreTest2::x3'],
+            $storeTest2->getX3(),
+        );
+
     }
 }
