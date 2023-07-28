@@ -7,6 +7,7 @@ use Phplc\Core\Attributes\EventTask;
 use Phplc\Core\Attributes\Logging;
 use Phplc\Core\Attributes\PeriodicTask;
 use Phplc\Core\Attributes\Retain;
+use Phplc\Core\Contracts\JsonObject;
 use Phplc\Core\RuntimeFields\Dto\EventTaskBuildResult;
 use Phplc\Core\RuntimeFields\Dto\EventTaskFieldDto;
 use Phplc\Core\RuntimeFields\Dto\PeriodicTaskBuildResult;
@@ -258,6 +259,14 @@ class TaskFieldsFactory
         $propertyName = $property->getName();
         $getter = null;
         $setter= null;
+
+        $validTypes = ['bool', 'int', 'float', 'string', 'array', JsonObject::class];
+        if (!$this->checkType($property->getType(), $validTypes)) {
+            $validTypesStr = implode(', ', $validTypes);
+            $mess = "retain \"{$propertyName}\" type must be set valid types {$validTypesStr}";
+            throw new \RuntimeException($mess);
+        }
+
         if (!$property->isPublic()) {
             $getter = $attributInstans->getter;
             $setter = $attributInstans->setter;
@@ -334,6 +343,14 @@ class TaskFieldsFactory
         $propertyName = $property->getName();
         $event = $attributInstans->event;
         $getter = null;
+
+        $validTypes = ['bool', 'int', 'float', 'string'];
+        if (!$this->checkType($property->getType(), $validTypes)) {
+            $validTypesStr = implode(', ', $validTypes);
+            $mess = "ChangeTracking \"{$propertyName}\" type must be set valid types {$validTypesStr}";
+            throw new \RuntimeException($mess);
+        }
+
          if (!$property->isPublic()) {
             $getter = $attributInstans->getter;
             if (is_null($getter)) {

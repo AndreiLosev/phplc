@@ -104,8 +104,9 @@ class RuntimeBuildTest extends TestCase
         foreach ($periodicTaskFields as $field) {
             $task = GetRuntimeFields::getPrivatPropert($field, 'task');
             $retainHeandler = GetRuntimeFields::getPrivatPropert($field, 'retainHeandler');
+            $changeTracking = GetRuntimeFields::getPrivatPropert($field, 'changeTrackingHeandler');
             $taskRetainPropertus = GetRuntimeFields::getPrivatPropert($retainHeandler, 'taskRetainPropertus');
-            $taskChangeTrackingPropertus = GetRuntimeFields::getPrivatPropert($field, 'taskChangeTrackingPropertus');
+            $taskChangeTrackingPropertus = GetRuntimeFields::getPrivatPropert($changeTracking, 'taskChangeTrackingPropertus');
 
             $this->assertTrue(
                 $task instanceof SimplePerioditTask
@@ -199,8 +200,9 @@ class RuntimeBuildTest extends TestCase
 
             if ($task instanceof EvenTaskWithStores) {
                 $retainHeandler = GetRuntimeFields::getPrivatPropert($field, 'retainHeandler');
+                $changeTracking = GetRuntimeFields::getPrivatPropert($field, 'changeTrackingHeandler');
                 $storageRetainProerty = GetRuntimeFields::getPrivatPropert($retainHeandler, 'storageRetainProerty');
-                $storageChangeTrackingProerty = GetRuntimeFields::getPrivatPropert($field, 'storageChangeTrackingProerty');
+                $storageChangeTrackingProerty = GetRuntimeFields::getPrivatPropert($changeTracking, 'storageChangeTrackingProerty');
 
                 $this->assertSame(count($storageRetainProerty), 2);
                 $this->assertSame(count($storageChangeTrackingProerty), 2);

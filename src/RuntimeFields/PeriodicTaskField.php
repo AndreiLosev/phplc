@@ -3,15 +3,18 @@
 namespace Phplc\Core\RuntimeFields;
 
 use Amp;
+use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\Contracts\Storage;
 use Phplc\Core\Contracts\Task;
+use Phplc\Core\System\ChangeTrackingStorage;
 
 class PeriodicTaskField
 {
     private float $startTime;
     private bool $cancelToken;
     private RetainPropertyHeandler $retainHeandler;
+    private ChangeTrackingFieldHeandler $changeTrackingHeandler;
 
     /** 
      * @param RetainPropertyField[] $taskRetainPropertus 
@@ -25,10 +28,12 @@ class PeriodicTaskField
         private float $periodMilis,
         array $taskRetainPropertus,
         array $storageRetainProerty,
-        private array $taskChangeTrackingPropertus,
-        private array $storageChangeTrackingProerty,
+        array $taskChangeTrackingPropertus,
+        array $storageChangeTrackingProerty,
         RetainProperty $retainService,
         \Closure $makeStorage,
+        ChangeTrackingStorage $changeTrackingStorage,
+        EventDispatcher $eventDispatcher,
     ) {
         $this->startTime = 0;
         $this->cancelToken = false;
@@ -36,6 +41,14 @@ class PeriodicTaskField
             $taskRetainPropertus,
             $storageRetainProerty,
             $retainService,
+            $makeStorage,
+        );
+
+        $this->changeTrackingHeandler = new ChangeTrackingFieldHeandler(
+            $taskChangeTrackingPropertus,
+            $storageChangeTrackingProerty,
+            $changeTrackingStorage,
+            $eventDispatcher,
             $makeStorage,
         );
     }

@@ -7,6 +7,7 @@ use Phplc\Core\Container;
 use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\Contracts\LoggingProperty;
 use Phplc\Core\Contracts\RetainProperty;
+use Phplc\Core\System\ChangeTrackingStorage;
 use Phplc\Core\System\CommandsServer\Server;
 use Phplc\Core\System\DefaultLoggingPropertyService;
 use Phplc\Core\System\DefaultRetainPropertyService;
@@ -27,6 +28,11 @@ class InnerSystemBuilder
             $container,
             RetainProperty::class,
             DefaultRetainPropertyService::class,
+        );
+        $this->buildIfNotExists(
+            $container,
+            ChangeTrackingStorage::class,
+            ChangeTrackingStorage::class,
         );
 
         $this->buildEventProvider($container);

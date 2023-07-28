@@ -34,6 +34,8 @@ class Config
 
     public float $loggingPeriod = 300;
 
+    public int $decimalPlacesForChangeTracking = 2;
+
     /** 
      * @var array<string, string> 
      */

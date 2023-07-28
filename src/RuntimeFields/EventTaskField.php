@@ -2,13 +2,17 @@
 
 namespace Phplc\Core\RuntimeFields;
 
+use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\Contracts\Storage;
 use Phplc\Core\Contracts\Task;
+use Phplc\Core\System\ChangeTrackingStorage;
 
 class EventTaskField
 {
     private RetainPropertyHeandler $retainHeandler;
+
+    private ChangeTrackingFieldHeandler $changeTrackingHeandler;
 
     /** 
      * @param RetainPropertyField[] $taskRetainPropertus 
@@ -22,15 +26,25 @@ class EventTaskField
         private string $eventName, 
         array $taskRetainPropertus,
         array $storageRetainProerty,
-        private array $taskChangeTrackingPropertus,
-        private array $storageChangeTrackingProerty,
+        array $taskChangeTrackingPropertus,
+        array $storageChangeTrackingProerty,
         RetainProperty $retainService,
         \Closure $makeStorage,
+        ChangeTrackingStorage $changeTrackingStorage,
+        EventDispatcher $eventDispatcher,
     ) {
         $this->retainHeandler = new RetainPropertyHeandler(
             $taskRetainPropertus,
             $storageRetainProerty,
             $retainService,
+            $makeStorage,
+        );
+
+        $this->changeTrackingHeandler = new ChangeTrackingFieldHeandler(
+            $taskChangeTrackingPropertus,
+            $storageChangeTrackingProerty,
+            $changeTrackingStorage,
+            $eventDispatcher,
             $makeStorage,
         );
     }
