@@ -55,7 +55,6 @@ class EventProvider
             $eventIsHandled = $collection->run($event);
 
             if (!$eventIsHandled) {
-                // TODO Errr Log
             }
 
             $this->next();
@@ -85,6 +84,6 @@ class EventProvider
 
     private function next(): void
     {
-        delay(0.01);
+        delay(0);
     }
 }

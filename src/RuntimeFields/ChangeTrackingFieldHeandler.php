@@ -22,7 +22,7 @@ class ChangeTrackingFieldHeandler
         private \Closure $makeStorage,
     ) {}
 
-    public function saveProprty(Task $task): void
+    public function heandler(Task $task): void
     {
         for ($i = 0; $i  < count($this->taskChangeTrackingPropertus); $i ++) { 
             /** @var scalar $value */

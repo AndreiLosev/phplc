@@ -125,7 +125,7 @@ class RuntimeRunTest extends TestCase
 
         $runtimeFuture = async($runtime->run(...));
 
-        $client = async(GetRuntimeFields::getCloseRuntimeClient(...));
+        $client = async(GetRuntimeFields::getCloseRuntimeClient(...), 0.15);
 
         $runtimeFuture->await();
         $client->await();

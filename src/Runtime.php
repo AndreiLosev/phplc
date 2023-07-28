@@ -12,7 +12,6 @@ use Phplc\Core\System\EventProvider;
 use Phplc\Core\RuntimeFields\InnerSystemBuilder;
 use Phplc\Core\System\InnerSysteEvents;
 use function Amp\async;
-use function Amp\delay;
 use Illuminate\Container\Container as IlluminateContainer;
 use Phplc\Core\Contracts\Task;
 use Phplc\Core\RuntimeFields\TaskFieldsFactory;
@@ -166,11 +165,6 @@ class Runtime
             ),
         );
 
-    }
-
-    private function next(): void
-    {
-        delay(0.01);
     }
 
     private function innerEventExecutor(string $event): void

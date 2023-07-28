@@ -77,6 +77,7 @@ class PeriodicTaskField
             try {
                 $this->task->execute();
                 $this->retainHeandler->saveProprty($this->task);
+                $this->changeTrackingHeandler->heandler($this->task);
             } catch (\Throwable $th) {
                 //TODO;
             }
