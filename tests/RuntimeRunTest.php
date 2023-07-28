@@ -15,6 +15,7 @@ use Phplc\Core\System\DefaultLoggingPropertyService;
 use Tests\TestClsses\ConfigForTests;
 use Tests\TestClsses\DispatchEventTask;
 use Tests\TestClsses\EvenTaskWithStores;
+use Tests\TestClsses\EventChangeTraking;
 use Tests\TestClsses\PeriodicTaskWIthRetainAndLoggingProeprty;
 use Tests\TestClsses\SeconTestEventTask;
 use Tests\TestClsses\SecondTestTask1;
@@ -121,8 +122,6 @@ class RuntimeRunTest extends TestCase
 
         $runtime->build();
         
-        $cancel = new DeferredCancellation();
-
         $runtimeFuture = async($runtime->run(...));
 
         $client = async(GetRuntimeFields::getCloseRuntimeClient(...), 0.15);
@@ -305,5 +304,29 @@ class RuntimeRunTest extends TestCase
             }
         }
 
+    }
+
+    public function testChungeTraking(): void
+    {
+        $container = GetRuntimeFields::getContainer();
+        $runtime = new Runtime([
+            PeriodicTaskWIthRetainAndLoggingProeprty::class,
+            EvenTaskWithStores::class,
+            EventChangeTraking::class,
+        ], $container);
+
+        $runtime->build();
+        
+        $runtimeFuture = async($runtime->run(...));
+
+        $client = async(GetRuntimeFields::getCloseRuntimeClient(...));
+
+        $runtimeFuture->await();
+        $client->await();
+
+        $periodic = $container->make(PeriodicTaskWIthRetainAndLoggingProeprty::class);
+        $evet = $container->make(EventChangeTraking::class);
+
+        $this->assertSame($periodic->q1, $evet->x1 + 1);
     }
 }
