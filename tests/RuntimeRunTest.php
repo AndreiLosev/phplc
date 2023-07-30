@@ -2,10 +2,11 @@
 
 namespace Tests;
 
-use Amp\DeferredCancellation;
+use Phplc\Core\Contracts\ErrorLog;
 use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
 use Phplc\Core\RuntimeFields\PeriodicTaskFieldsCollection;
+use Phplc\Core\System\DefaultErrorLog;
 use Phplc\Core\System\DefaultRetainPropertyService;
 use Tests\GetRuntimeFields;
 use PHPUnit\Framework\TestCase;
@@ -23,6 +24,7 @@ use Tests\TestClsses\SecondTestTask2;
 use Tests\TestClsses\SecondTestStorage;
 use Tests\TestClsses\StoreTest1;
 use Tests\TestClsses\StoreTest2;
+use Tests\TestClsses\ThrowableTask;
 use function Amp\Socket\connect;
 use function Amp\async;
 use function Amp\delay;
@@ -303,7 +305,6 @@ class RuntimeRunTest extends TestCase
                 $this->assertSame((string)$storeTest2->getX3(), $value);
             }
         }
-
     }
 
     public function testChungeTraking(): void
@@ -328,5 +329,32 @@ class RuntimeRunTest extends TestCase
         $evet = $container->make(EventChangeTraking::class);
 
         $this->assertSame($periodic->q1, $evet->x1 + 1);
+    }
+
+    public function testErrorLog(): void
+    {
+        $container = GetRuntimeFields::getContainer();
+        $runtime = new Runtime([
+            ThrowableTask::class,
+        ], $container);
+
+        $runtime->build();
+        
+        $runtimeFuture = async($runtime->run(...));
+
+        $client = async(GetRuntimeFields::getCloseRuntimeClient(...));
+
+        $runtimeFuture->await();
+        $client->await();
+
+        /** @var DefaultErrorLog */
+        $eDb = $container->make(ErrorLog::class);
+
+        $dbResult = $eDb->query("SELECT * FROM error_log");
+
+        while ($row = $dbResult->fetchArray(SQLITE3_ASSOC)) {
+            $this->assertSame('Test RuntimeException', json_decode($row['error'])[0]);
+        }
+
     }
 }

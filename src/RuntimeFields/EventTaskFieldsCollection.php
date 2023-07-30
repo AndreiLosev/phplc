@@ -3,6 +3,7 @@
 namespace Phplc\Core\RuntimeFields;
 
 use Phplc\Core\Container;
+use Phplc\Core\Contracts\ErrorLog;
 use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\RuntimeFields\Dto\EventTaskFieldDto;
@@ -26,6 +27,7 @@ class EventTaskFieldsCollection
             fn(EventTaskFieldDto $etf) => new EventTaskField(
                 $etf->task,
                 $etf->eventName,
+                $container->make(ErrorLog::class),
                 $etf->taskRetainPropertus,
                 $etf->storageRetainProerty,
                 $etf->taskChangeTrackingPropertus,

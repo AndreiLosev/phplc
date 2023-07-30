@@ -2,6 +2,7 @@
 
 namespace Phplc\Core\System;
 
+use Phplc\Core\Contracts\ErrorLog;
 use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
 use function Amp\delay;
 
@@ -14,8 +15,9 @@ class EventProvider
      */
     private array $queue;
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly ErrorLog $errLog,
+    ) {
         $this->queue = [self::REPEAT];
     }
 
@@ -55,6 +57,7 @@ class EventProvider
             $eventIsHandled = $collection->run($event);
 
             if (!$eventIsHandled) {
+                $this->errLog->log(new \RuntimeException("event [{$event}] not found"));
             }
 
             $this->next();

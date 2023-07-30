@@ -31,4 +31,18 @@ class ConfigForTests extends Config
         'dbPath' => ':memory:',
         'table' => 'error_log',
     ];
+
+    /** 
+     * @var string[] 
+     */
+    public array $errorMesaageToLog = [
+        'getMessage',
+        // 'getCode',
+        'getFile',
+        'getLine',
+        // 'getTrace',
+        // 'getTraceAsString',
+        // 'getPrevious',
+        // '__toString',
+    ];
 }

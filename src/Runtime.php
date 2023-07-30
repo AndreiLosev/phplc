@@ -2,8 +2,10 @@
 
 namespace Phplc\Core;
 
+use Amp\CancelledException;
 use Amp\DeferredCancellation;
 use Amp\Future;
+use Phplc\Core\Contracts\ErrorLog;
 use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
 use Phplc\Core\RuntimeFields\LoggingPropertyFieldsCollection;
 use Phplc\Core\RuntimeFields\PeriodicTaskFieldsCollection;
@@ -71,14 +73,19 @@ class Runtime
             $this->innerEventExecutor(...)
         );
 
-        [$err] = Future\awaitAll([
+        [$errors] = Future\awaitAll([
             $periodiTasksFuture,
             $eventTasksFuture,
             $commandServer,
             $logging,
         ]);
 
-        //TODO error to log
+        foreach ($errors as $e) {
+            if ($e instanceof CancelledException) {
+                continue;
+            }
+            $this->container->make(ErrorLog::class)->log($e, true);
+        }
     }
 
     private function loadAllUsedClasses(): void

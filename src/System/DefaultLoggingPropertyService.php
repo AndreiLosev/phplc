@@ -42,6 +42,10 @@ class DefaultLoggingPropertyService extends \SQLite3 implements LoggingProperty
      */
     public function setLog(array $property): void
     {
+        if (count($property) === 0) {
+            return;
+        }
+
         $sql = "
         INSERT INTO {$this->table} ({$this->name}, {$this->value}, {$this->time})
         VALUES";

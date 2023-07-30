@@ -4,11 +4,13 @@ namespace Phplc\Core\RuntimeFields;
 
 use Phplc\Core\Config;
 use Phplc\Core\Container;
+use Phplc\Core\Contracts\ErrorLog;
 use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\Contracts\LoggingProperty;
 use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\System\ChangeTrackingStorage;
 use Phplc\Core\System\CommandsServer\Server;
+use Phplc\Core\System\DefaultErrorLog;
 use Phplc\Core\System\DefaultLoggingPropertyService;
 use Phplc\Core\System\DefaultRetainPropertyService;
 use Phplc\Core\System\EventDispatcherDefault;
@@ -18,22 +20,21 @@ class InnerSystemBuilder
 {
     public function build(Container $container): void
     {
-        $this->buildIfNotExists($container, Config::class, Config::class);
-        $this->buildIfNotExists(
-            $container,
-            LoggingProperty::class,
-            DefaultLoggingPropertyService::class
-        );
-        $this->buildIfNotExists(
-            $container,
-            RetainProperty::class,
-            DefaultRetainPropertyService::class,
-        );
-        $this->buildIfNotExists(
-            $container,
+        $build = [
+            Config::class,
+            ErrorLog::class => DefaultErrorLog::class,
+            LoggingProperty::class => DefaultLoggingPropertyService::class,
+            RetainProperty::class => DefaultRetainPropertyService::class,
             ChangeTrackingStorage::class,
-            ChangeTrackingStorage::class,
-        );
+        ];
+
+        foreach ($build as $key => $value) {
+            if (is_int($key)) {
+                $this->buildIfNotExists($container, $value);
+                continue;
+            }
+            $this->buildIfNotExists($container, $key, $value);
+        }
 
         $this->buildEventProvider($container);
         $this->buildCommandServer($container);
@@ -64,12 +65,12 @@ class InnerSystemBuilder
 
     /** 
      * @param interface-string $abstract
-     * @param class-string $concret 
+     * @param class-string|null $concret 
      */
     private function buildIfNotExists(
         Container $container,
         string $abstract,
-        string $concret,
+        string|null $concret = null,
     ): void {
         if (!$container->isSinglton($abstract)) {
             $container->singleton($abstract, $concret);

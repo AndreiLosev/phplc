@@ -4,6 +4,7 @@ namespace Phplc\Core\RuntimeFields;
 
 use Amp\Future;
 use Phplc\Core\Container;
+use Phplc\Core\Contracts\ErrorLog;
 use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\Contracts\Storage;
@@ -28,6 +29,7 @@ class PeriodicTaskFieldsCollection
             fn(PeriodicTaskFieldDto $ptf) => new PeriodicTaskField(
                 $ptf->task,
                 $ptf->periodMilis,
+                $container->make(ErrorLog::class),
                 $ptf->taskRetainPropertus,
                 $ptf->storageRetainProerty,
                 $ptf->taskChangeTrackingPropertus,

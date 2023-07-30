@@ -2,6 +2,7 @@
 
 namespace Phplc\Core\RuntimeFields;
 
+use Phplc\Core\Contracts\ErrorLog;
 use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\Contracts\Storage;
@@ -10,9 +11,8 @@ use Phplc\Core\System\ChangeTrackingStorage;
 
 class EventTaskField
 {
-    private RetainPropertyHeandler $retainHeandler;
-
-    private ChangeTrackingFieldHeandler $changeTrackingHeandler;
+    private readonly RetainPropertyHeandler $retainHeandler;
+    private readonly ChangeTrackingFieldHeandler $changeTrackingHeandler;
 
     /** 
      * @param RetainPropertyField[] $taskRetainPropertus 
@@ -22,8 +22,9 @@ class EventTaskField
      * @param \Closure(class-string<Storage>): Storage $makeStorage
      */
     public function __construct(
-        private Task $task,
-        private string $eventName, 
+        private readonly Task $task,
+        private readonly string $eventName, 
+        private readonly ErrorLog $errLog,
         array $taskRetainPropertus,
         array $storageRetainProerty,
         array $taskChangeTrackingPropertus,
@@ -60,8 +61,8 @@ class EventTaskField
             $this->task->execute();
             $this->retainHeandler->saveProprty($this->task);
             $this->changeTrackingHeandler->heandler($this->task);
-        } catch (\Throwable $th) {
-            //TODO;
+        } catch (\Throwable $e) {
+            $this->errLog->log($e);
         }
     }
 

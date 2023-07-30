@@ -25,6 +25,19 @@ class Test implements Task
     }
 }
 
+#[PeriodicTask]
+class STask implements Task
+{
+    public function execute(): void
+    {
+        $server = Socket\listen($this->socketAdr);
+
+        while ($socket = $server->accept($cancellation)) {
+            async(fn() => $this->handler($socket));
+        }
+    }
+}
+
 $container = new Container();
 $plc = new Runtime([
     Test::class,

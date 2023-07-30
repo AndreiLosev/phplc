@@ -44,6 +44,21 @@ class Config
         'table' => 'error_log',
     ];
 
+    /** 
+     * @var string[] 
+     */
+    public array $errorMesaageToLog = [
+        'getMessage',
+        // 'getCode',
+        'getFile',
+        'getLine',
+        // 'getTrace',
+        // 'getTraceAsString',
+        // 'getPrevious',
+        // '__toString',
+
+    ];
+
     public function build(): void
     {
         $this->buildRootPath();

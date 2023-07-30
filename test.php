@@ -1,7 +1,15 @@
 <?php
 
+use Phplc\Core\Config;
+use Phplc\Core\Contracts\ErrorLog;
 use Phplc\Core\Contracts\JsonObject;
+use Phplc\Core\Contracts\LoggingProperty;
+use Phplc\Core\Contracts\RetainProperty;
+use Phplc\Core\System\ChangeTrackingStorage;
+use Phplc\Core\System\DefaultErrorLog;
+use Phplc\Core\System\DefaultLoggingPropertyService;
 use Phplc\Core\System\DefaultRetainPropertyService;
+use function Amp\now;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -24,7 +32,12 @@ class SecondT
 $i = new Test22;
 $s = new SecondT;
 
-print_r([
-    $i->{$s->prop},
-    $i->{$s->geeter}(),
-]);
+$build = [
+    Config::class,
+    ErrorLog::class => DefaultErrorLog::class,
+    LoggingProperty::class => DefaultLoggingPropertyService::class,
+    RetainProperty::class => DefaultRetainPropertyService::class,
+    ChangeTrackingStorage::class,
+];
+
+print_r($build);
