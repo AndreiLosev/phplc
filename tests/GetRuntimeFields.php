@@ -9,6 +9,7 @@ use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
 use Phplc\Core\RuntimeFields\LoggingPropertyFieldsCollection;
 use Phplc\Core\RuntimeFields\PeriodicTaskFieldsCollection;
 use Phplc\Core\Runtime;
+use Phplc\Core\System\ChangeTrackingStorage;
 use Tests\TestClsses\ConfigForTests;
 use function Amp\Socket\connect;
 use function Amp\delay;
@@ -25,14 +26,17 @@ class GetRuntimeFields
         $periodicTasksColection = $appContainer->make(PeriodicTaskFieldsCollection::class);
         $eventTasksColection = $appContainer->make(EventTaskFieldsCollection::class);
         $loggingFieldsCollection = $appContainer->make(LoggingPropertyFieldsCollection::class);
+        $changeFieldCollection = $appContainer->make(ChangeTrackingStorage::class);
         $periodicTaskFields = self::getPrivatPropert($periodicTasksColection, 'collection');
         $eventTaskFields = self::getPrivatPropert($eventTasksColection, 'collection');
         $loggingFields = self::getPrivatPropert($loggingFieldsCollection, 'collection');
+        $changeField = self::getPrivatPropert($changeFieldCollection, 'collection');
 
         return [
             'periodicTaskFields' => $periodicTaskFields,
             'eventTaskFields' => $eventTaskFields,
             'loggingFields' => $loggingFields,
+            'changeField' => $changeField,
         ];
 
     }

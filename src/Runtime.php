@@ -9,6 +9,7 @@ use Phplc\Core\Contracts\ErrorLog;
 use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
 use Phplc\Core\RuntimeFields\LoggingPropertyFieldsCollection;
 use Phplc\Core\RuntimeFields\PeriodicTaskFieldsCollection;
+use Phplc\Core\System\ChangeTrackingStorage;
 use Phplc\Core\System\CommandsServer\Server;
 use Phplc\Core\System\EventProvider;
 use Phplc\Core\RuntimeFields\InnerSystemBuilder;
@@ -59,6 +60,10 @@ class Runtime
             $this->cancellationToken->getCancellation(),
         );
 
+        $changeTracking = async(
+            $this->container->make(ChangeTrackingStorage::class)->run(...),
+        );
+
         $logging = async(
             $this->container->make(LoggingPropertyFieldsCollection::class)->run(...),
             $this->cancellationToken->getCancellation(),
@@ -78,6 +83,7 @@ class Runtime
             $eventTasksFuture,
             $commandServer,
             $logging,
+            $changeTracking,
         ]);
 
         foreach ($errors as $e) {
@@ -119,6 +125,7 @@ class Runtime
         $periodiTasks = [];
         $eventTasks = [];
         $loggingFields = [];
+        $changeTrackingField = [];
         foreach ($this->tasks as $taskName) {
             $taskInstans = $this->container->make($taskName);
             $buildResult = $this->taskFieldsFactory->build($taskInstans);
@@ -136,6 +143,13 @@ class Runtime
                     continue;
                 }
                 $loggingFields[$key] = $fild;
+            }
+
+            foreach ($buildResult->changeTrackingField as $key => $fild) {
+                if (count($fild) === 0) {
+                    continue;
+                }
+                $changeTrackingField[$key] = $fild;
             }
         }
         $this->container->singleton(
@@ -172,6 +186,18 @@ class Runtime
             ),
         );
 
+        $this->container->singleton(
+            ChangeTrackingStorage::class,
+            function() use($changeTrackingField) {
+                $collection = new ChangeTrackingStorage(
+                    $this->container,
+                    $changeTrackingField,
+                );
+                $collection->build();
+                return $collection;
+            }
+        );
+
     }
 
     private function innerEventExecutor(string $event): void
@@ -185,6 +211,7 @@ class Runtime
     {
         $this->container->make(EventProvider::class)->cancel();
         $this->container->make(PeriodicTaskFieldsCollection::class)->cancel();
+        $this->container->make(ChangeTrackingStorage::class)->cancel();
         $this->cancellationToken->cancel();
     }
 }

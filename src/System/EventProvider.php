@@ -3,8 +3,8 @@
 namespace Phplc\Core\System;
 
 use Phplc\Core\Contracts\ErrorLog;
+use Phplc\Core\Helpers;
 use Phplc\Core\RuntimeFields\EventTaskFieldsCollection;
-use function Amp\delay;
 
 class EventProvider
 {
@@ -44,13 +44,13 @@ class EventProvider
     {
         while ($event = $this->shift()) {
             if ($this->isRepeat($event)) {
-                $this->next();
+                Helpers::next();
                 continue;
             }
 
             if ($this->isInnerSystemEvent($event)) {
                 $innerEventExecutor($event);
-                $this->next();
+                Helpers::next();
                 continue;
             }
 
@@ -60,7 +60,7 @@ class EventProvider
                 $this->errLog->log(new \RuntimeException("event [{$event}] not found"));
             }
 
-            $this->next();
+            Helpers::next();
         }
     }
 
@@ -83,10 +83,5 @@ class EventProvider
     private function isInnerSystemEvent(string $event): bool
     {
         return is_int(strpos($event, InnerSysteEvents::INNER_PREFIX));
-    }
-
-    private function next(): void
-    {
-        delay(0);
     }
 }

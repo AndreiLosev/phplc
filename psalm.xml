@@ -10,7 +10,7 @@
 >
     <projectFiles>
         <directory name="src" />
-        <ignoreFiles>
+        <ignoreFiles name="index.php">
             <directory name="vendor" />
             <directory name="tests" />
         </ignoreFiles>

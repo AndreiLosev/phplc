@@ -46,6 +46,7 @@ class TaskFieldsFactory
     
                 $result->periodicTask = $buildResult->periodicTaskField;
                 $result->loggingPropertyFields = $buildResult->loggingPropertyFields;
+                $result->changeTrackingField = $buildResult->changeTrackingField;
 
             }
 
@@ -61,6 +62,7 @@ class TaskFieldsFactory
 
                 $result->eventTask = $buildResult->eventTaskField;
                 $result->loggingPropertyFields = $buildResult->loggingPropertyFields;
+                $result->changeTrackingField = $buildResult->changeTrackingField;
             }
         }
 
@@ -83,6 +85,11 @@ class TaskFieldsFactory
             $reflectionClass->getName() => $taskPropertyFields->loggingProperty
         ];
 
+        $changeTrackingProperty = [
+            ...$searchResult->changeTrackingPropertyFields,
+            $reflectionClass->getName() => $taskPropertyFields->changeTrackingProperty,
+        ];
+
         $period = $attributInstans->seconds + $attributInstans->milliseconds / 1000;
 
         $periodicTasField = new PeriodicTaskFieldDto(
@@ -90,13 +97,12 @@ class TaskFieldsFactory
             $period,
             $taskPropertyFields->retainProeprty,
             $searchResult->retainPropertyFields,
-            $taskPropertyFields->changeTrackingProperty,
-            $searchResult->changeTrackingPropertyFields,
         );
 
         return new PeriodicTaskBuildResult(
             $periodicTasField,
             $loggingPropertyFields,
+            $changeTrackingProperty,
         );
     }
 
@@ -117,18 +123,22 @@ class TaskFieldsFactory
             $reflectionClass->getName() => $taskPropertyFields->loggingProperty,
         ];
 
+        $changeTrackingProperty = [
+            ...$searchResult->changeTrackingPropertyFields,
+            $reflectionClass->getName() => $taskPropertyFields->changeTrackingProperty,
+        ];
+
         $periodicTasField = new EventTaskFieldDto(
             $taskInstans,
             $attributInstans->eventName,
             $taskPropertyFields->retainProeprty,
             $searchResult->retainPropertyFields,
-            $taskPropertyFields->changeTrackingProperty,
-            $searchResult->changeTrackingPropertyFields,
         );
 
         return new EventTaskBuildResult(
             $periodicTasField,
             $loggingPropertyFields,
+            $changeTrackingProperty,
         );
     }
 

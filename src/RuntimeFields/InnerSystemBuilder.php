@@ -25,7 +25,6 @@ class InnerSystemBuilder
             ErrorLog::class => DefaultErrorLog::class,
             LoggingProperty::class => DefaultLoggingPropertyService::class,
             RetainProperty::class => DefaultRetainPropertyService::class,
-            ChangeTrackingStorage::class,
         ];
 
         foreach ($build as $key => $value) {

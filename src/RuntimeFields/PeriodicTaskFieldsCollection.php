@@ -5,11 +5,9 @@ namespace Phplc\Core\RuntimeFields;
 use Amp\Future;
 use Phplc\Core\Container;
 use Phplc\Core\Contracts\ErrorLog;
-use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\Contracts\Storage;
 use Phplc\Core\RuntimeFields\Dto\PeriodicTaskFieldDto;
-use Phplc\Core\System\ChangeTrackingStorage;
 use function Amp\async;
 
 class PeriodicTaskFieldsCollection
@@ -32,12 +30,8 @@ class PeriodicTaskFieldsCollection
                 $container->make(ErrorLog::class),
                 $ptf->taskRetainPropertus,
                 $ptf->storageRetainProerty,
-                $ptf->taskChangeTrackingPropertus,
-                $ptf->storageChangeTrackingProerty,
                 $container->make(RetainProperty::class),
                 fn(string $strStorage) => $container->make($strStorage),
-                $container->make(ChangeTrackingStorage::class),
-                $container->make(EventDispatcher::class),
             ),
             $collection,
         );

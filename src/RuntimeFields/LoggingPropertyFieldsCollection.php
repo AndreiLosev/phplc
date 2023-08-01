@@ -37,7 +37,9 @@ class LoggingPropertyFieldsCollection
                 $instants = $this->continer->make($class);
                 for ($i = 0; $i < count($property); $i++) {
                     [$key, $value] = $property[$i]->getKeyValue($instants);  
-                    $prepared[$key] = $value;
+                    if (is_scalar($value)) {
+                        $prepared[$key] = $value;
+                    }
                 }
             }
             $this->loggingService->setLog($prepared);

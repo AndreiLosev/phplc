@@ -4,10 +4,8 @@ namespace Phplc\Core\RuntimeFields;
 
 use Phplc\Core\Container;
 use Phplc\Core\Contracts\ErrorLog;
-use Phplc\Core\Contracts\EventDispatcher;
 use Phplc\Core\Contracts\RetainProperty;
 use Phplc\Core\RuntimeFields\Dto\EventTaskFieldDto;
-use Phplc\Core\System\ChangeTrackingStorage;
 
 class EventTaskFieldsCollection  
 {
@@ -30,12 +28,8 @@ class EventTaskFieldsCollection
                 $container->make(ErrorLog::class),
                 $etf->taskRetainPropertus,
                 $etf->storageRetainProerty,
-                $etf->taskChangeTrackingPropertus,
-                $etf->storageChangeTrackingProerty,
                 $container->make(RetainProperty::class),
                 fn(string $strStorage) => $container->make($strStorage),
-                $container->make(ChangeTrackingStorage::class),
-                $container->make(EventDispatcher::class),
             ),
             $collection,
         );
