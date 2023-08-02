@@ -17,7 +17,7 @@ class ChangeTrackingStorage
      */
     private array $values = [];
 
-    private readonly int $decimalPlaces;
+    private readonly float $decimalPlaces;
 
     private bool $cancelToken = false;
 
@@ -30,8 +30,10 @@ class ChangeTrackingStorage
         private readonly Container $container,
         private readonly array $collection,
     ) {
-        $this->decimalPlaces = $container->make(Config::class)
-            ->decimalPlacesForChangeTracking;
+        $config = $container->make(Config::class);
+    
+        $this->decimalPlaces = 5 / pow(10, $config->decimalPlacesForChangeTracking + 1);
+
         $this->eventDispatcher = $container->make(EventDispatcher::class);
 
     }
@@ -88,18 +90,23 @@ class ChangeTrackingStorage
 
     private function valueIsChanged(string $name, bool|int|float|string $value): bool
     {
-        $newValue = is_float($value) ? round($value, $this->decimalPlaces) : $value;
-
         if (!isset($this->values[$name])) {
-            $this->values[$name] = $newValue;
+            $this->values[$name] = $value;
             return true;
         }
 
-        if ($newValue === $this->values[$name]) {
+        if (is_float($value)) {
+            $isEqual = abs($value - (float)$this->values[$name]) < $this->decimalPlaces;
+            if ($isEqual) {
+                return false;
+            }
+        }
+
+        if ($value === $this->values[$name]) {
             return false;
         }
 
-        $this->values[$name] = $newValue;
+        $this->values[$name] = $value;
         return true;
     }
 }
