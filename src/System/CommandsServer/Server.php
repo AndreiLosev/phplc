@@ -28,7 +28,7 @@ class Server
         $server = Socket\listen($this->socketAdr);
 
         while ($socket = $server->accept($cancellation)) {
-            async(fn() => $this->handler($socket));
+            async($this->handler(...), $socket);
         }
     }
 

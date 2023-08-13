@@ -22,7 +22,7 @@ abstract class PropertyAttribut
     {
         $shortName = Helpers::shortName($class::class);
         $key = "{$shortName}::{$this->name}";
-        /** @var scalar */
+        /** @var scalar|array|JsonObject */
         $value = match ($this->getter) {
             null => $class->{$this->name},
             default => $class->{$this->getter}(),

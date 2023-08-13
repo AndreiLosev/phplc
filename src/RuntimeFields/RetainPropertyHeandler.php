@@ -62,7 +62,7 @@ class RetainPropertyHeandler
 
         for ($i = 0; $i  < count($this->taskRetainPropertus); $i ++) { 
             [$key, $value] = $this->taskRetainPropertus[$i]->getKeyValue($task);
-            async($this->retainService->createIfNotExists(...), $key, $value)->await();
+            $this->retainService->createIfNotExists($key, $value);
             $names[] = $key;
         }
 
@@ -71,7 +71,7 @@ class RetainPropertyHeandler
             $storageInstans = $makeStorage($storageName);
             for ($i = 0; $i < count($property); $i ++) { 
                 [$key, $value] = $property[$i]->getKeyValue($storageInstans);
-                async($this->retainService->createIfNotExists(...), $key, $value)->await();
+                $this->retainService->createIfNotExists($key, $value);
                 $names[] = $key;
             }
         }
@@ -88,7 +88,7 @@ class RetainPropertyHeandler
             return;
         }
 
-        $retainProperty = async($this->retainService->select(...), $names)->await();
+        $retainProperty = $this->retainService->select($names);
 
         for ($i = 0; $i  < count($this->taskRetainPropertus); $i ++) { 
             [$key] = $this->taskRetainPropertus[$i]->getKeyValue($task);
